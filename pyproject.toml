@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = "diplomat"
