@@ -71,10 +71,10 @@ fn main() {
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
-        .add_startup_system(setup_player)
-        .add_system(update_velocity)
-        .add_system(move_player)
-        .add_system(animate_player_sprite)
+		.add_startup_system(setup_player)
+		.add_system(update_velocity)
+		.add_system(move_player)
+		.add_system(animate_player_sprite)
 		.add_system(update_camera.after(move_player))
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
@@ -92,7 +92,7 @@ fn setup(
 	mut tiles: Res<TileManager>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    setup_camera(&mut commands);
+	setup_camera(&mut commands);
 
 	// Spawn a test entity at the origin.
 	commands.spawn(SpriteBundle {

@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::player::*;
+use bevy::prelude::*;
 
 pub fn update_camera(
 	mut camera_position_current: Local<Vec2>,
@@ -10,7 +10,6 @@ pub fn update_camera(
 ) {
 	let mut camera = camera.single_mut();
 	let player = player.single();
-
 
 	camera.translation = player.translation
 }
