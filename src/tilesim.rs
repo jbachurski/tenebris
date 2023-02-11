@@ -37,7 +37,7 @@ impl Simulator {
 		structure_dist: u32,
 		structure_radius: u32,
 	) -> Simulator {
-		let mut res = Self {
+		Self {
 			width: width,
 			ca_params: ca_params,
 			radii: radii,
@@ -49,8 +49,7 @@ impl Simulator {
 			structure_dist: structure_dist,
 			structure_radius: structure_radius,
 			grid: TileManager::default(),
-		};
-		res
+		}
 	}
 
 	pub fn post_init(&mut self) {
