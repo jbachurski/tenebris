@@ -181,7 +181,10 @@ impl Simulator {
 	fn calc_new_cell(&self, loc: UVec2) -> bool {
 		let dist = loc.as_vec2().distance(UVec2::new(self.width / 2, self.width / 2).as_vec2());
 		let (inner_bound, outer_bound) = self.radii;
-		if dist < inner_bound as f32 || dist > outer_bound as f32 {
+		if dist < inner_bound as f32 {
+			return false;
+		}
+		if dist > outer_bound as f32 {
 			// If dist from centre is not within the two radii, return true
 			return true;
 		}
