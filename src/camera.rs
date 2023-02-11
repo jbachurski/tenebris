@@ -1,30 +1,20 @@
 use bevy::prelude::*;
+use crate::player::*;
+
 pub fn update_camera(
 	mut camera_position_current: Local<Vec2>,
 	mut camera_position_desired: Local<Vec2>,
-	mut cameras: Query<&mut Transform, With<Camera>>,
+	mut camera: Query<&mut Transform, With<Camera>>,
+	player: Query<&Transform, (With<Player>, Without<Camera>)>,
 	keycode: Res<Input<KeyCode>>,
 ) {
-	let delta = 8.0;
+	let mut camera = camera.single_mut();
+	let player = player.single();
 
-	// if keycode.pressed(KeyCode::W) {
-	// 	camera_position_desired.y += delta;
-	// }
-	// if keycode.pressed(KeyCode::S) {
-	// 	camera_position_desired.y += -delta;
-	// }
-	// if keycode.pressed(KeyCode::A) {
-	// 	camera_position_desired.x += -delta;
-	// }
-	// if keycode.pressed(KeyCode::D) {
-	// 	camera_position_desired.x += delta;
-	// }
 
-	let delta = (*camera_position_desired - *camera_position_current) * 0.2;
-	*camera_position_current += delta;
+	camera.translation = player.translation
+}
 
-	for mut camera in cameras.iter_mut() {
-		camera.translation.x = camera_position_current.x;
-		camera.translation.y = camera_position_current.y;
-	}
+pub fn setup_camera(commands: &mut Commands) {
+	commands.spawn(Camera2dBundle::default());
 }

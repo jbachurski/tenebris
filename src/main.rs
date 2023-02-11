@@ -35,7 +35,7 @@ pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 pub const TILE_SIZE: f32 = 32.;
 
-pub const FOG_RADIUS: u32 = 16;
+pub const FOG_RADIUS: u32 = 17;
 
 fn main() {
 	App::new()
@@ -75,7 +75,7 @@ fn main() {
         .add_system(update_velocity)
         .add_system(move_player)
         .add_system(animate_player_sprite)
-		.add_system(update_camera)
+		.add_system(update_camera.after(move_player))
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
@@ -92,7 +92,7 @@ fn setup(
 	mut tiles: Res<TileManager>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    setup_camera(commands);
+    setup_camera(&mut commands);
 
 	// Spawn a test entity at the origin.
 	commands.spawn(SpriteBundle {
