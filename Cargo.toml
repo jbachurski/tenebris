@@ -9,6 +9,7 @@ edition = "2021"
 bevy = { version = "0.9.1", features = ["dynamic"] }
 bevy-inspector-egui = "0.17.0"
 bevy_ecs_tilemap = "0.9.0"
+bevy_prototype_debug_lines = "0.9"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

@@ -1,6 +1,7 @@
 use bevy::{prelude::*, render::render_resource::*};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_prototype_debug_lines::*;
 
 mod camera;
 use camera::*;
@@ -41,6 +42,7 @@ fn main() {
 					},
 				}),
 		)
+		.add_plugin(DebugLinesPlugin::default())
 		.insert_resource(TilemapRenderSettings {
 			render_chunk_size: RENDER_CHUNK_SIZE,
 		})
