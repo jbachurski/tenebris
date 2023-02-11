@@ -145,6 +145,7 @@ pub fn run_skeleton(
 }
 
 pub fn run_wraith(
+	time: Res<Time>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut enemies: Query<(&Transform, &mut Velocity, &mut EnemyWraith), Without<Camera>>,
 	mut lines: ResMut<DebugLines>,
@@ -153,9 +154,10 @@ pub fn run_wraith(
 	for (enemy_tr, mut velocity, mut wraith) in enemies.iter_mut() {
 		let angle_diff = Vec2::from_angle(wraith.angle).angle_between(camera_pos.xy() - enemy_tr.translation.xy());
 
+		wraith.angle_vel *= f32::powf(0.5, time.delta_seconds());
 		wraith.angle_vel += (angle_diff / 3.0).clamp(-TAU / 1024.0, TAU / 1024.0);
 		wraith.angle_vel = wraith.angle_vel.clamp(-TAU / 256.0, TAU / 256.0);
-		wraith.angle += wraith.angle_vel;
+		wraith.angle += wraith.angle_vel * time.delta_seconds() * 60.0;
 		lines.line_colored(
 			enemy_tr.translation,
 			enemy_tr.translation + (Vec2::from_angle(wraith.angle) * 70.0).extend(1.0),
