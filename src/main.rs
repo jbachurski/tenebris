@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use bevy::{
 	math::{Vec2Swizzles, Vec3Swizzles},
 	prelude::*,
@@ -137,8 +139,11 @@ pub fn spawn_tiles(
 ) {
 	for camera in cameras.iter() {
 		let camera_tile_position = position_to_tile_position(&camera.translation.xy());
-		for x in camera_tile_position.x.saturating_sub(FOG_RADIUS)..=camera_tile_position.x.saturating_add(FOG_RADIUS) {
-			for y in camera_tile_position.y.saturating_sub(FOG_RADIUS)..=camera_tile_position.y.saturating_add(FOG_RADIUS) {
+		for x in camera_tile_position.x.saturating_sub(FOG_RADIUS)..=min(199, camera_tile_position.x.saturating_add(FOG_RADIUS))
+		{
+			for y in
+				camera_tile_position.y.saturating_sub(FOG_RADIUS)..=min(199, camera_tile_position.y.saturating_add(FOG_RADIUS))
+			{
 				let tile_position = UVec2::new(x, y);
 				if !tile_manager.spawned_tiles.contains(&tile_position) {
 					tile_manager.spawned_tiles.insert(tile_position);
