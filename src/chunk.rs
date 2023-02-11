@@ -1,7 +1,7 @@
 use bevy::{math::*, prelude::*, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 
-pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 { x: 1, y: 1 };
+pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 { x: 2, y: 2 };
 
 pub const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 56.0, y: 51.0 };
 
@@ -11,13 +11,14 @@ pub struct ChunkManager {
 }
 
 fn chunk_position(position: &Vec2) -> IVec2 {
-	position.as_ivec2()
-		/ (RENDER_CHUNK_SIZE
-			* UVec2 {
-				x: TILE_SIZE.x as u32,
-				y: TILE_SIZE.y as u32,
-			})
-		.as_ivec2()
+	(*position
+		/ (RENDER_CHUNK_SIZE.as_vec2()
+			* Vec2 {
+				x: TILE_SIZE.x,
+				y: TILE_SIZE.y,
+			}))
+	.round()
+	.as_ivec2()
 }
 
 pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_position: IVec2) {
