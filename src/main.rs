@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::render_resource::*};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_ecs_tilemap::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod camera;
 use camera::*;
@@ -9,13 +9,10 @@ mod chunk;
 use chunk::*;
 
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
-pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 {
-    x: 8,
-    y: 8,
-};
+pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 { x: 8, y: 8 };
 
 fn main() {
-    App::new()    
+    App::new()
         .insert_resource(ClearColor(Color::rgb_u8(0, 0, 0)))
         .add_plugins(
             DefaultPlugins
