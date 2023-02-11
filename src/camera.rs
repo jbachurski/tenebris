@@ -1,5 +1,10 @@
 use bevy::prelude::*;
-pub fn update_camera(mut camera_position_current: Local<Vec2>, mut camera_position_desired: Local<Vec2>, mut cameras: Query<&mut Transform, With<Camera>>, keycode: Res<Input<KeyCode>>) {
+pub fn update_camera(
+	mut camera_position_current: Local<Vec2>,
+	mut camera_position_desired: Local<Vec2>,
+	mut cameras: Query<&mut Transform, With<Camera>>,
+	keycode: Res<Input<KeyCode>>,
+) {
 	let delta = 8.0;
 
 	if keycode.pressed(KeyCode::W) {
