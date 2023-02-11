@@ -31,7 +31,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(Vec3::new(3200 + 50.0, 3200 + 100.0, 1.0)),
+			transform: Transform::from_translation(Vec3::new(3200. + 50.0, 3200. + 100.0, 1.0)),
 			..default()
 		})
 		.insert(EnemySkeleton)
