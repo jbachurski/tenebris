@@ -139,6 +139,23 @@ fn tile_position_to_position(tile_position: &UVec2) -> Vec2 {
 	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
 }
 
+fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
+	let f = |dx: i32, dy: i32| -> bool {
+		let xx = ((tile_position.x as i32) + dx) as usize;
+		let yy = ((tile_position.y as i32) + dy) as usize;
+		simulator
+			.grid
+			.is_wall
+			.get(xx)
+			.map_or(false, |row| *row.get(yy).unwrap_or(&false))
+	};
+	if f(0, 0) {
+		208
+	} else {
+		1
+	}
+}
+
 pub fn spawn_tile(
 	commands: &mut Commands,
 	_asset_server: &AssetServer,
@@ -146,14 +163,6 @@ pub fn spawn_tile(
 	simulator: &Simulator,
 	tile_position: UVec2,
 ) {
-	let f = |dx, dy| simulator.grid.is_wall[(tile_position.x as i32 + dx) as usize][(tile_position.y as i32 + dy) as usize];
-	let index = {
-		if f(0, 0) {
-			0
-		} else {
-			1460
-		}
-	};
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform {
@@ -161,7 +170,7 @@ pub fn spawn_tile(
 				scale: Vec2::splat(1.).extend(0.),
 				..default()
 			},
-			sprite: TextureAtlasSprite::new(index),
+			sprite: TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position)),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
@@ -219,13 +228,7 @@ pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprit
 	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(
-				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
-					0
-				} else {
-					1460
-				},
-			);
+			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position))
 		}
 	}
 }
