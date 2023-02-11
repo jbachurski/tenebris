@@ -20,6 +20,9 @@ use assets::*;
 mod tiles;
 use tiles::*;
 
+mod shooting;
+use shooting::*;
+
 mod mob;
 use mob::*;
 
@@ -73,6 +76,8 @@ fn main() {
 		.add_system(move_by_velocity)
 		.add_system(animate_player_sprite)
 		.add_system(update_camera.after(move_by_velocity))
+		.add_system(player_shoot)
+		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
