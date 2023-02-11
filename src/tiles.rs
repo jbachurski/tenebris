@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::extract_resource::ExtractResource, utils::HashSet};
-use bevy_inspector_egui::{prelude::*, quick::ResourceInspectorPlugin};
+use bevy_inspector_egui::prelude::*;
 
 #[derive(Reflect, Clone, Debug, Resource, InspectorOptions, ExtractResource)]
 #[reflect(Resource, InspectorOptions)]
