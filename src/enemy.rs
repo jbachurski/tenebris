@@ -16,6 +16,16 @@ pub struct EnemyWraith {
 	angle_vel: f32,
 }
 
+enum EnemyGooState {
+	Jumping(u32, Vec2),
+	Waiting(u32),
+}
+
+#[derive(Component)]
+pub struct EnemyGoo {
+	state: EnemyGooState,
+}
+
 pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
 	commands
 		.spawn(MaterialMesh2dBundle {
@@ -56,6 +66,16 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 });
+	commands
+		.spawn(MaterialMesh2dBundle {
+			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),
+			material: materials.add(ColorMaterial::from(Color::BLUE)),
+			transform: Transform::from_translation(Vec3::new(-300.0, 0.0, 1.0)),
+			..default()
+		})
+		.insert(EnemyGoo {
+			state: EnemyGooState::Waiting(0),
+		});
 }
 
 fn lerp(x1: f32, y1: f32, x2: f32, y2: f32, x: f32) -> f32 {
@@ -119,7 +139,7 @@ pub fn run_skeleton(
 
 pub fn run_wraith(
 	cameras: Query<&Transform, With<Camera>>,
-	mut enemies: Query<(&mut Transform, &mut EnemyWraith), (With<EnemyWraith>, Without<Camera>)>,
+	mut enemies: Query<(&mut Transform, &mut EnemyWraith), Without<Camera>>,
 	mut lines: ResMut<DebugLines>,
 ) {
 	let camera_pos = cameras.single().translation;
@@ -137,5 +157,36 @@ pub fn run_wraith(
 		);
 		enemy_tr.translation +=
 			(3.0 + 1.0 * (1.0 - (angle_diff.abs() / (TAU / 4.0)).min(1.0))) * Vec2::from_angle(wraith.angle).extend(0.0);
+	}
+}
+
+pub fn run_goo(cameras: Query<&Transform, With<Camera>>, mut enemies: Query<(&mut Transform, &mut EnemyGoo), Without<Camera>>) {
+	let camera_pos = cameras.single().translation;
+	for (mut enemy_tr, mut goo) in enemies.iter_mut() {
+		let diff = camera_pos.xy() - enemy_tr.translation.xy();
+		enemy_tr.scale = Vec3::splat(1.0);
+		goo.state = match goo.state {
+			EnemyGooState::Jumping(ticks, heading) => {
+				if ticks > 0 {
+					enemy_tr.translation += (heading * 6.0).extend(0.0);
+					EnemyGooState::Jumping(ticks - 1, heading)
+				} else {
+					EnemyGooState::Waiting(75)
+				}
+			},
+			EnemyGooState::Waiting(ticks) => {
+				if ticks > 0 {
+					if ticks < 10 {
+						enemy_tr.scale = Vec3::splat(lerp(0.0, 1.0, 10.0, 0.8, ticks as f32));
+					} else if ticks < 50 {
+						enemy_tr.scale = Vec3::splat(lerp(10.0, 0.8, 50.0, 1.0, ticks as f32));
+					}
+					EnemyGooState::Waiting(ticks - 1)
+				} else {
+					EnemyGooState::Jumping(45, diff.normalize())
+				}
+			},
+		};
+		println!("Jumping {}", enemy_tr.scale);
 	}
 }
