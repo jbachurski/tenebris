@@ -22,12 +22,7 @@ use tiles::*;
 mod mob;
 use mob::*;
 
-#[derive(Component)]
-pub struct Tile;
-
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
-
-pub const TILE_SIZE: f32 = 32.;
 
 pub const FOG_RADIUS: u32 = 17;
 
@@ -67,15 +62,16 @@ fn main() {
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
-		.add_system(move_by_velocity)
 		.add_system(animate_player_sprite)
-		.add_system(update_camera.after(move_by_velocity))
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
+		.add_system(move_by_velocity)
+		.add_system(update_camera.after(move_by_velocity))
+		.add_system(resolve_collisions.after(move_by_velocity))
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -108,10 +104,6 @@ fn setup(
 		None,
 		None,
 	));
-}
-
-fn position_to_tile_position(position: &Vec2) -> UVec2 {
-	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
 
 pub fn spawn_tile(

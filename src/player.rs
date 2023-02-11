@@ -73,5 +73,9 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			..default()
 		},
 		AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+		Bounded {
+			size: Vec2::new(32., 32.),
+		},
+		CollidesWithWalls,
 	));
 }
