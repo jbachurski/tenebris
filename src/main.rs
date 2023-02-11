@@ -70,7 +70,7 @@ fn main() {
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
-		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (20, 50), 2, 0, 20, 5))
+		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (20, 30), 2, 0, 20, 5))
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
