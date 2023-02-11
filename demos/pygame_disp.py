@@ -1,9 +1,10 @@
-import pygame
-import time
 import copy
-import math
+import time
+
+import pygame
 
 pygame.init()
+
 
 class PygameFrontend:
     def __init__(self, sim, pxsz=2):
@@ -19,22 +20,33 @@ class PygameFrontend:
                     return
                 self.handle(ev)
 
-            prev_grid = copy.deepcopy(self.sim.grid)
-            self.sim.step()
-            
-            for i in range(self.sim.width):
-                for j in range(self.sim.width):
-                    if self.sim.grid[i][j] != prev_grid[i][j] or self.should_force_update(i, j):
-                        col = self.get_colour(i, j)
-                        if self.pxsz == 1:
-                            self.screen.set_at((j, i), col)
-                        else:
-                            pygame.draw.rect(self.screen, col, [j*self.pxsz, i*self.pxsz, self.pxsz, self.pxsz])
-
+            self.step()
             pygame.display.flip()
-            self.steps += 1
+
             time.sleep(0.1)
-    
+
+    def step(self):
+        prev_grid = copy.deepcopy(self.sim.grid)
+        self.sim.step()
+
+        for i in range(self.sim.width):
+            for j in range(self.sim.width):
+                if self.sim.grid[i][j] != prev_grid[i][j] or self.should_force_update(
+                    i, j
+                ):
+                    self.update_cell(i, j)
+
+        self.steps += 1
+
+    def update_cell(self, i, j):
+        col = self.get_colour(i, j)
+        if self.pxsz == 1:
+            self.screen.set_at((j, i), col)
+        else:
+            pygame.draw.rect(
+                self.screen, col, [j * self.pxsz, i * self.pxsz, self.pxsz, self.pxsz]
+            )
+
     def should_force_update(self, i, j):
         return self.steps == 0
 
@@ -48,10 +60,12 @@ class PygameFrontend:
     def handle(self, ev):
         return
 
+
 if __name__ == "__main__":
     from radar import RadarSimulator
+
     N = 100
-    s = RadarSimulator(2*N+2, 2, 6, radii=(0, 9*N/10), stepangle=0.5)
+    s = RadarSimulator(2 * N + 2, 2, 6, radii=(0, 9 * N / 10), stepangle=0.5)
     pf = PygameFrontend(s, pxsz=3)
 
     pf.run()

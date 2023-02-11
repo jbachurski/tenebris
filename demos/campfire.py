@@ -17,8 +17,10 @@ class PygameFrontendWithCampfires(PygameFrontend):
             return (0, 255, 0)
         return res
 
-    def should_force_update(self, i, j):
-        return super().should_force_update(i, j) or ((i, j) in self.sim.past_campfires)
+    def step(self):
+        super().step()
+        for i, j in self.sim.campfires:
+            self.update_cell(i, j)
 
 
 class RadarSimulatorWithCampfires(RadarSimulator):
@@ -42,12 +44,11 @@ class RadarSimulatorWithCampfires(RadarSimulator):
     def remove_campfire(self, i, j):
         self.campfires.remove((i, j))
 
-    def calc(self, i, j):
-        res = super().calc(i, j)
-        for ci, cj in self.campfires:
-            if self.norm(i - ci, j - cj) < self.campfire_radius:
-                return self.grid[i][j]
-        return res
+    def protected(self, i, j):
+        return any(
+            self.norm(i - ci, j - cj) < self.campfire_radius
+            for ci, cj in self.campfires
+        )
 
 
 if __name__ == "__main__":
