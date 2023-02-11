@@ -1,7 +1,11 @@
 use std::cmp::min;
 
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
+use bevy::{
+	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+	math::Vec3Swizzles,
+	prelude::*,
+	render::render_resource::*,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
 
@@ -20,15 +24,18 @@ use assets::*;
 mod tiles;
 use tiles::*;
 
+mod shooting;
+use shooting::*;
+
 mod mob;
 use mob::*;
 
-#[derive(Component)]
-pub struct Tile;
+mod tilesim;
+use tilesim::*;
+
+mod utils;
 
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
-
-pub const TILE_SIZE: f32 = 32.;
 
 pub const FOG_RADIUS: u32 = 17;
 
@@ -63,22 +70,25 @@ fn main() {
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
-		.insert_resource(TileManager::default())
+		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (0, 2000), 2, 0, 20, 5))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
-		.add_system(move_by_velocity)
 		.add_system(animate_player_sprite)
-		.add_system(update_camera.after(move_by_velocity))
+		.add_system(player_shoot)
+		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
+		.add_system(move_by_velocity)
+		.add_system(resolve_collisions.after(move_by_velocity))
+		.add_system(update_camera.after(resolve_collisions))
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -87,7 +97,7 @@ fn setup(
 	mut commands: Commands,
 	mut atlases: ResMut<Atlases>,
 	asset_server: Res<AssetServer>,
-	mut _tiles: Res<TileManager>,
+	mut simulator: ResMut<Simulator>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
 	setup_camera(&mut commands);
@@ -119,6 +129,7 @@ fn setup(
 		None,
 		None,
 	));
+	simulator.post_init();
 }
 
 fn position_to_tile_position(position: &Vec2) -> UVec2 {
@@ -132,10 +143,10 @@ pub fn spawn_tile(
 	commands: &mut Commands,
 	_asset_server: &AssetServer,
 	atlases: &Atlases,
-	tile_manager: &TileManager,
+	simulator: &Simulator,
 	tile_position: UVec2,
 ) {
-	let f = |dx, dy| tile_manager.is_wall[(tile_position.x as i32 + dx) as usize][(tile_position.y as i32 + dy) as usize];
+	let f = |dx, dy| simulator.grid.is_wall[(tile_position.x as i32 + dx) as usize][(tile_position.y as i32 + dy) as usize];
 	let index = {
 		if f(0, 0) {
 			0
@@ -162,7 +173,7 @@ pub fn spawn_tiles(
 	asset_server: Res<AssetServer>,
 	atlases: Res<Atlases>,
 	cameras: Query<&Transform, With<Camera>>,
-	mut tile_manager: ResMut<TileManager>,
+	mut simulator: ResMut<Simulator>,
 ) {
 	for camera in cameras.iter() {
 		let camera_tile_position = position_to_tile_position(&camera.translation.xy());
@@ -172,9 +183,9 @@ pub fn spawn_tiles(
 				camera_tile_position.y.saturating_sub(FOG_RADIUS)..=min(199, camera_tile_position.y.saturating_add(FOG_RADIUS))
 			{
 				let tile_position = UVec2::new(x, y);
-				if !tile_manager.spawned_tiles.contains(&tile_position) {
-					tile_manager.spawned_tiles.insert(tile_position);
-					spawn_tile(&mut commands, &asset_server, &atlases, &tile_manager, tile_position);
+				if !simulator.grid.spawned_tiles.contains(&tile_position) {
+					simulator.grid.spawned_tiles.insert(tile_position);
+					spawn_tile(&mut commands, &asset_server, &atlases, &simulator, tile_position);
 				}
 			}
 		}
@@ -185,7 +196,7 @@ pub fn despawn_tiles(
 	mut commands: Commands,
 	tiles: Query<(Entity, &Transform), With<Tile>>,
 	cameras: Query<&Transform, With<Camera>>,
-	mut tile_manager: ResMut<TileManager>,
+	mut simulator: ResMut<Simulator>,
 ) {
 	for camera in cameras.iter() {
 		for (entity, transform) in tiles.iter() {
@@ -197,25 +208,24 @@ pub fn despawn_tiles(
 				|| tile_position.y < camera_tile_position.y.saturating_sub(FOG_RADIUS)
 				|| tile_position.y > camera_tile_position.y.saturating_add(FOG_RADIUS)
 			{
-				tile_manager.spawned_tiles.remove(&tile_position);
+				simulator.grid.spawned_tiles.remove(&tile_position);
 				commands.entity(entity).despawn_recursive();
 			}
 		}
 	}
 }
 
-pub fn update_tiles(
-	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
-	tile_manager: ResMut<TileManager>,
-) {
+pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
 	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
-		if tile_manager.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(if tile_manager.is_wall[tile_position.x as usize][tile_position.y as usize] {
-				0
-			} else {
-				1460
-			});
+		if simulator.grid.spawned_tiles.contains(&tile_position) {
+			*ta_sprite = TextureAtlasSprite::new(
+				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
+					0
+				} else {
+					1460
+				},
+			);
 		}
 	}
 }

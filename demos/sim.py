@@ -54,8 +54,7 @@ class Simulator:
         dist = norm(i - self.width // 2, j - self.width // 2)
         if dist < self.radii[0] or dist > self.radii[1]:
             return 1
-        else:
-            return random.choices([0, 1], weights=self.weights)[0]
+        return random.choices([0, 1], weights=self.weights)[0]
 
     def output(self):
         for i in range(self.width):
