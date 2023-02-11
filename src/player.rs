@@ -12,18 +12,10 @@ pub struct Acceleration {
     rate: f32
 }
 
-pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Velocity(Vec2::new(0.0, 0.0)),
-        Acceleration {max_velocity: 10.0, rate: 2.0},
-        SpriteBundle {
-            texture: asset_server.load("test.png"),
-            ..default()
-        }
-    ));
-}
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(Timer);
 
-pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity, &Acceleration)>) {
+pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity, &Acceleration), With<Player>>) {
     let (mut velocity, acceleration) = query.single_mut();
     let velocity_vec = &mut velocity.0;
 
@@ -60,8 +52,46 @@ pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&m
     *velocity_vec = (*velocity_vec + acceleration_vec + passive_deceleration).clamp_length_max(acceleration.max_velocity);
 }
 
-pub fn move_player(mut query: Query<(&mut Transform, &Velocity)>) {
+pub fn move_player(mut query: Query<(&mut Transform, &Velocity), With<Player>>) {
     let (mut transform, velocity) = query.single_mut();
 
     transform.translation += velocity.0.extend(0.0);
+}
+
+
+pub fn animate_player_sprite(
+    time: Res<Time>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    mut query: Query<(
+        &mut AnimationTimer,
+        &mut TextureAtlasSprite,
+        &Handle<TextureAtlas>,
+    ),
+    With<Player>
+    >,
+) {
+    for (mut timer, mut sprite, texture_atlas_handle) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+            sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
+        }
+    }
+}
+
+pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlases: ResMut<Assets<TextureAtlas>>,) {
+    let texture_handle = asset_server.load("wizard.png");
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 10, 10, None, None);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
+    commands.spawn((
+        Player,
+        Velocity(Vec2::new(0.0, 0.0)),
+        Acceleration {max_velocity: 10.0, rate: 2.0},
+        SpriteSheetBundle {
+            texture_atlas: texture_atlas_handle,
+            ..default()
+        },
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+    ));
 }

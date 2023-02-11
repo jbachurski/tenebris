@@ -52,6 +52,7 @@ fn main() {
         .add_startup_system(setup_player)
         .add_system(update_velocity)
         .add_system(move_player)
+        .add_system(animate_player_sprite)
 		.add_system(update_camera)
 		.add_system(spawn_chunks)
 		.add_system(despawn_chunks)
