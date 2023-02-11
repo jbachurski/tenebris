@@ -1,25 +1,30 @@
 use std::cmp::min;
 
-use bevy::{
-	math::{Vec2Swizzles, Vec3Swizzles},
-	prelude::*,
-	render::render_resource::*,
-};
-use bevy_ecs_tilemap::prelude::*;
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use rand::prelude::*;
+use bevy_prototype_debug_lines::*;
 
 mod camera;
 use camera::*;
 
-mod chunk;
-use chunk::*;
+mod player;
+use player::*;
+
+mod enemy;
+use enemy::*;
 
 mod assets;
 use assets::*;
 
 mod tiles;
 use tiles::*;
+
+mod shooting;
+use shooting::*;
+
+mod mob;
+use mob::*;
 
 mod tilesim;
 use tilesim::*;
@@ -33,7 +38,7 @@ pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 pub const TILE_SIZE: f32 = 32.;
 
-pub const FOG_RADIUS: u32 = 16;
+pub const FOG_RADIUS: u32 = 17;
 
 fn main() {
 	App::new()
@@ -63,15 +68,28 @@ fn main() {
 					},
 				}),
 		)
+		.add_plugin(DebugLinesPlugin::default())
+		.add_plugin(LogDiagnosticsPlugin::default())
+		.add_plugin(FrameTimeDiagnosticsPlugin::default())
 		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (0, 2000), 2, 0, 20, 5))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
-		.add_system(update_camera)
+		.add_startup_system(setup_player)
+		.add_system(update_velocity)
+		.add_system(move_by_velocity)
+		.add_system(animate_player_sprite)
+		.add_system(update_camera.after(move_by_velocity))
+		.add_system(player_shoot)
+		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
+		.add_system(run_skeleton)
+		.add_system(run_wraith)
+		.add_system(run_goo)
+		.add_startup_system(spawn_enemies)
 		.run();
 }
 
@@ -82,8 +100,7 @@ fn setup(
 	mut simulator: ResMut<Simulator>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-	// Spawn our camera.
-	commands.spawn(Camera2dBundle::default());
+	setup_camera(&mut commands);
 
 	// Spawn a test entity at the origin.
 	commands.spawn(SpriteBundle {
@@ -114,7 +131,7 @@ fn position_to_tile_position(position: &Vec2) -> UVec2 {
 
 pub fn spawn_tile(
 	commands: &mut Commands,
-	asset_server: &AssetServer,
+	_asset_server: &AssetServer,
 	atlases: &Atlases,
 	simulator: &Simulator,
 	tile_position: UVec2,
@@ -187,7 +204,7 @@ pub fn despawn_tiles(
 }
 
 pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
-	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
+	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
 			*ta_sprite = TextureAtlasSprite::new(
