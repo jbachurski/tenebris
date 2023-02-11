@@ -1,6 +1,6 @@
-use crate::mob::*;
-use crate::player::*;
 use bevy::prelude::*;
+
+use crate::{mob::*, player::*};
 
 #[derive(Component, Deref, DerefMut)]
 pub struct ProjectileTimer(Timer);

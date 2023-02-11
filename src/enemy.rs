@@ -39,7 +39,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO));
+		.insert(Velocity(Vec2::ZERO))
+		.insert(CollidesWithWalls);
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
@@ -52,7 +53,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO));
+		.insert(Velocity(Vec2::ZERO))
+		.insert(CollidesWithWalls);
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
@@ -68,7 +70,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO));
+		.insert(Velocity(Vec2::ZERO))
+		.insert(CollidesWithWalls);
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),
@@ -79,7 +82,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(EnemyGoo {
 			state: EnemyGooState::Waiting(0),
 		})
-		.insert(Velocity(Vec2::ZERO));
+		.insert(Velocity(Vec2::ZERO))
+		.insert(CollidesWithWalls);
 }
 
 fn lerp(x1: f32, y1: f32, x2: f32, y2: f32, x: f32) -> f32 {

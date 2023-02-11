@@ -1,7 +1,11 @@
 use std::cmp::min;
 
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
+use bevy::{
+	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+	math::Vec3Swizzles,
+	prelude::*,
+	render::render_resource::*,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
 
@@ -31,12 +35,7 @@ use tilesim::*;
 
 mod utils;
 
-#[derive(Component)]
-pub struct Tile;
-
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
-
-pub const TILE_SIZE: f32 = 32.;
 
 pub const FOG_RADIUS: u32 = 17;
 
@@ -78,9 +77,7 @@ fn main() {
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
-		.add_system(move_by_velocity)
 		.add_system(animate_player_sprite)
-		.add_system(update_camera.after(move_by_velocity))
 		.add_system(player_shoot)
 		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
@@ -89,6 +86,9 @@ fn main() {
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
+		.add_system(move_by_velocity)
+		.add_system(resolve_collisions.after(move_by_velocity))
+		.add_system(update_camera.after(resolve_collisions))
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -121,7 +121,6 @@ fn setup(
 		None,
 		None,
 	));
-
 	simulator.post_init();
 }
 
