@@ -165,6 +165,7 @@ pub fn run_goo(cameras: Query<&Transform, With<Camera>>, mut enemies: Query<(&mu
 	for (mut enemy_tr, mut goo) in enemies.iter_mut() {
 		let diff = camera_pos.xy() - enemy_tr.translation.xy();
 		enemy_tr.scale = Vec3::splat(1.0);
+		println!("{}", enemy_tr.translation);
 		goo.state = match goo.state {
 			EnemyGooState::Jumping(ticks, heading) => {
 				if ticks > 0 {
@@ -175,7 +176,9 @@ pub fn run_goo(cameras: Query<&Transform, With<Camera>>, mut enemies: Query<(&mu
 				}
 			},
 			EnemyGooState::Waiting(ticks) => {
-				if ticks > 0 {
+				if diff.length() > 600.0 {
+					EnemyGooState::Waiting(ticks)
+				} else if ticks > 0 {
 					if ticks < 10 {
 						enemy_tr.scale = Vec3::splat(lerp(0.0, 1.0, 10.0, 0.8, ticks as f32));
 					} else if ticks < 50 {
@@ -187,6 +190,5 @@ pub fn run_goo(cameras: Query<&Transform, With<Camera>>, mut enemies: Query<(&mu
 				}
 			},
 		};
-		println!("Jumping {}", enemy_tr.scale);
 	}
 }
