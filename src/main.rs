@@ -1,5 +1,6 @@
 use std::cmp::min;
 
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
@@ -60,6 +61,8 @@ fn main() {
 				}),
 		)
 		.add_plugin(DebugLinesPlugin::default())
+		.add_plugin(LogDiagnosticsPlugin::default())
+		.add_plugin(FrameTimeDiagnosticsPlugin::default())
 		.insert_resource(TileManager::default())
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
