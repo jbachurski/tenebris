@@ -103,6 +103,14 @@ fn setup(
 	});
 
 	// Create a texture atlas for cave.
+	atlases.cave_atlas_simple = texture_atlases.add(TextureAtlas::from_grid(
+		asset_server.load("cave/atlas_cave_simple.png"),
+		Vec2::new(32., 32.),
+		6,
+		4,
+		None,
+		None,
+	));
 	atlases.cave_atlas = texture_atlases.add(TextureAtlas::from_grid(
 		asset_server.load("cave/atlas_cave.png"),
 		Vec2::new(32., 32.),
@@ -127,8 +135,9 @@ pub fn spawn_tile(
 	tile_manager: &TileManager,
 	tile_position: UVec2,
 ) {
+	let f = |dx, dy| tile_manager.is_wall[(tile_position.x as i32 + dx) as usize][(tile_position.y as i32 + dy) as usize];
 	let index = {
-		if tile_manager.is_wall[tile_position.x as usize][tile_position.y as usize] {
+		if f(0, 0) {
 			0
 		} else {
 			1460
