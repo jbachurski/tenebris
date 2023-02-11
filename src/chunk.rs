@@ -1,6 +1,8 @@
 use bevy::{math::*, prelude::*, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 
+use crate::assets::*;
+
 pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 { x: 2, y: 2 };
 
 pub const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 56.0, y: 51.0 };
@@ -21,7 +23,7 @@ fn chunk_position(position: &Vec2) -> IVec2 {
 	.as_ivec2()
 }
 
-pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_position: IVec2) {
+pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, atlases: &Atlases, chunk_position: IVec2) {
 	let tilemap_entity = commands.spawn_empty().id();
 	let mut tile_storage = TileStorage::empty(RENDER_CHUNK_SIZE.into());
 	for x in 0..RENDER_CHUNK_SIZE.x {
@@ -45,6 +47,9 @@ pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_po
 		0.0,
 	));
 
+	//let id = rng.gen_range(0..(51 * 48)); // FIXME: Magic number.
+
+	//atlases.cave_atlas.
 	let texture_handle: Handle<Image> = asset_server.load("test.png");
 	commands.entity(tilemap_entity).insert(TilemapBundle {
 		grid_size: TILE_SIZE.into(),
@@ -60,6 +65,7 @@ pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_po
 pub fn spawn_chunks(
 	mut commands: Commands,
 	asset_server: Res<AssetServer>,
+	atlases: Res<Atlases>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut chunk_manager: ResMut<ChunkManager>,
 ) {
@@ -70,7 +76,7 @@ pub fn spawn_chunks(
 				let chunk_position = IVec2::new(x, y);
 				if !chunk_manager.spawned_chunks.contains(&chunk_position) {
 					chunk_manager.spawned_chunks.insert(chunk_position);
-					spawn_chunk(&mut commands, &asset_server, chunk_position);
+					spawn_chunk(&mut commands, &asset_server, &atlases, chunk_position);
 				}
 			}
 		}
