@@ -36,7 +36,7 @@ fn main() {
         )
         .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup)
-
+        .add_system(update_camera)
         .run();
 }
 
