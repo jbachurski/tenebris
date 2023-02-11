@@ -1,10 +1,18 @@
 use bevy::{prelude::*, render::render_resource::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_ecs_tilemap::prelude::*;
 
 mod camera;
 use camera::*;
 
+mod chunk;
+use chunk::*;
+
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
+pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 {
+    x: 8,
+    y: 8,
+};
 
 fn main() {
     App::new()    
@@ -34,9 +42,16 @@ fn main() {
                     },
                 }),
         )
+        .insert_resource(TilemapRenderSettings {
+            render_chunk_size: RENDER_CHUNK_SIZE,
+        })
+        .add_plugin(TilemapPlugin)
+        .insert_resource(ChunkManager::default())
         .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup)
         .add_system(update_camera)
+        .add_system(spawn_chunks)
+        .add_system(despawn_chunks)
         .run();
 }
 
