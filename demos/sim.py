@@ -30,10 +30,10 @@ class Simulator:
         return self.grid[i][j]
 
     def norm(self, i, j):
-        return math.sqrt((i - self.width // 2) **2 + (j - self.width // 2) ** 2)
+        return math.sqrt(i**2 + j**2)
 
     def calc_new_cell(self, i, j):
-        dist = self.norm(i, j)
+        dist = self.norm(i - self.width // 2, j - self.width // 2)
         if dist < self.radii[0] or dist > self.radii[1]:
             return 1
         else:
