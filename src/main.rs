@@ -7,6 +7,9 @@ use bevy_prototype_debug_lines::*;
 mod camera;
 use camera::*;
 
+mod player;
+use player::*;
+
 mod enemy;
 use enemy::*;
 
@@ -16,6 +19,9 @@ use assets::*;
 mod tiles;
 use tiles::*;
 
+mod mob;
+use mob::*;
+
 #[derive(Component)]
 pub struct Tile;
 
@@ -23,7 +29,7 @@ pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 pub const TILE_SIZE: f32 = 32.;
 
-pub const FOG_RADIUS: u32 = 16;
+pub const FOG_RADIUS: u32 = 17;
 
 fn main() {
 	App::new()
@@ -59,7 +65,11 @@ fn main() {
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
-		.add_system(update_camera)
+		.add_startup_system(setup_player)
+		.add_system(update_velocity)
+		.add_system(move_player)
+		.add_system(animate_player_sprite)
+		.add_system(update_camera.after(move_player))
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
@@ -77,8 +87,7 @@ fn setup(
 	mut _tiles: Res<TileManager>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-	// Spawn our camera.
-	commands.spawn(Camera2dBundle::default());
+	setup_camera(&mut commands);
 
 	// Spawn a test entity at the origin.
 	commands.spawn(SpriteBundle {
