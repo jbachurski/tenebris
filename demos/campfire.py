@@ -1,6 +1,7 @@
 import pygame
 from pygame_disp import PygameFrontend
 from radar import RadarSimulator
+from utils import norm
 
 # Click screen to place down campfires
 
@@ -44,10 +45,9 @@ class RadarSimulatorWithCampfires(RadarSimulator):
     def remove_campfire(self, i, j):
         self.campfires.remove((i, j))
 
-    def protected(self, i, j):
-        return any(
-            self.norm(i - ci, j - cj) < self.campfire_radius
-            for ci, cj in self.campfires
+    def cannot_forget(self, i, j):
+        return super().cannot_forget(i, j) or any(
+            norm(i - ci, j - cj) < self.campfire_radius for ci, cj in self.campfires
         )
 
 

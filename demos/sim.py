@@ -1,5 +1,6 @@
-import math
 import random
+
+from utils import norm
 
 
 def mk_grid(width):
@@ -7,15 +8,19 @@ def mk_grid(width):
 
 
 class Simulator:
-    def __init__(self, width, k, b, radii=(1, 38)):
+    def __init__(self, width, k, b, radii=(1, 38), weights=[1, 1]):
         self.width = width
         self.k = k
         self.b = b
         self.radii = radii
+        self.weights = weights
         self.grid = [
             [self.calc_new_cell(i, j) for j in range(self.width)]
             for i in range(self.width)
         ]
+
+    def post_init(self):
+        pass
 
     def step(self):
         self.grid = [
@@ -39,18 +44,18 @@ class Simulator:
             return 1
         return self.grid[i][j]
 
-    def protected(self, i, j):
+    def cannot_forget(self, i, j):
         return False
 
-    def norm(self, i, j):
-        return math.sqrt(i**2 + j**2)
+    def protected(self, i, j):
+        return self.cannot_forget(i, j)
 
     def calc_new_cell(self, i, j):
-        dist = self.norm(i - self.width // 2, j - self.width // 2)
+        dist = norm(i - self.width // 2, j - self.width // 2)
         if dist < self.radii[0] or dist > self.radii[1]:
             return 1
         else:
-            return random.randint(0, 1)
+            return random.choices([0, 1], weights=self.weights)[0]
 
     def output(self):
         for i in range(self.width):

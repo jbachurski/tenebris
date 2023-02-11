@@ -13,6 +13,8 @@ class PygameFrontend:
         self.screen = pygame.display.set_mode((sim.width * pxsz, sim.width * pxsz))
         self.steps = 0
 
+        sim.post_init()
+
     def run(self):
         while True:
             for ev in pygame.event.get():

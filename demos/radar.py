@@ -20,6 +20,8 @@ class RadarSimulator(Simulator):
         super().step()
 
     def calc(self, i, j):
+        if self.protected(i, j):
+            return self.grid[i][j]
         prev_res = super().calc(i, j)
         if self.stepangle < 0:
             return prev_res

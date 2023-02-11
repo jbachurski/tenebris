@@ -3,6 +3,7 @@ import random
 
 import pygame
 from campfire import PygameFrontendWithCampfires, RadarSimulatorWithCampfires
+from utils import norm
 
 # Arrow keys to move around, press return to place campfires
 
@@ -23,10 +24,7 @@ class ObserverFrontend(PygameFrontendWithCampfires):
         r, g, b = super().get_colour(i, j)
         if (i, j) in self.sim.available_cells:
             b *= 0.8
-            if (
-                self.sim.norm(i - self.sim.ci[0], j - self.sim.ci[1])
-                < self.sim.innerrad
-            ):
+            if norm(i - self.sim.ci[0], j - self.sim.ci[1]) < self.sim.innerrad:
                 g *= 0.8
         elif self.fog_of_war:
             return (150, 150, 150)
@@ -64,8 +62,12 @@ class ObserverSimulator(RadarSimulatorWithCampfires):
         self.ci = (self.width // 2, self.width // 2)
         self.available_cells = set()
         self.despawn_prob = 1 - math.pow(0.5, 1 / half_life)
+        self.innerrad = innerrad
 
+    def post_init(self):
+        super().post_init()
         # Initialise CA without worrying about innerrad for now
+        innerrad = self.innerrad
         self.innerrad = 0
         for _ in range(10):
             self.step()
@@ -74,15 +76,16 @@ class ObserverSimulator(RadarSimulatorWithCampfires):
     def step(self):
         super().step()
         for i, j in list(self.available_cells):
-            dist = self.norm(i - self.ci[0], j - self.ci[1])
+            dist = norm(i - self.ci[0], j - self.ci[1])
             if dist > self.outerrad and random.random() < self.despawn_prob:
                 # Despawn
-                if not self.protected(i, j):
+                if not self.cannot_forget(i, j):
                     self.available_cells.remove((i, j))
-                    self.grid[i][j] = self.calc_new_cell(i, j)
+                    if not self.protected(i, j):
+                        self.grid[i][j] = self.calc_new_cell(i, j)
 
     def calc(self, i, j):
-        dist = self.norm(i - self.ci[0], j - self.ci[1])
+        dist = norm(i - self.ci[0], j - self.ci[1])
         if dist < self.outerrad:
             # This cell exists!!!
             self.available_cells.add((i, j))
