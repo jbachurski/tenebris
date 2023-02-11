@@ -165,7 +165,6 @@ pub fn run_goo(cameras: Query<&Transform, With<Camera>>, mut enemies: Query<(&mu
 	for (mut enemy_tr, mut goo) in enemies.iter_mut() {
 		let diff = camera_pos.xy() - enemy_tr.translation.xy();
 		enemy_tr.scale = Vec3::splat(1.0);
-		println!("{}", enemy_tr.translation);
 		goo.state = match goo.state {
 			EnemyGooState::Jumping(ticks, heading) => {
 				if ticks > 0 {
