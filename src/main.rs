@@ -8,6 +8,9 @@ use camera::*;
 mod chunk;
 use chunk::*;
 
+mod player;
+use player::*;
+
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 pub const RENDER_CHUNK_SIZE: UVec2 = UVec2 { x: 8, y: 8 };
 
@@ -16,7 +19,10 @@ fn main() {
 		.insert_resource(ClearColor(Color::rgb_u8(0, 0, 0)))
 		.add_plugins(
 			DefaultPlugins
-				.set(AssetPlugin { watch_for_changes: true, ..default() })
+				.set(AssetPlugin {
+					watch_for_changes: true,
+					..default()
+				})
 				.set(WindowPlugin {
 					window: WindowDescriptor {
 						width: SCREEN_DIMENSIONS.0,
@@ -36,11 +42,16 @@ fn main() {
 					},
 				}),
 		)
-		.insert_resource(TilemapRenderSettings { render_chunk_size: RENDER_CHUNK_SIZE })
+		.insert_resource(TilemapRenderSettings {
+			render_chunk_size: RENDER_CHUNK_SIZE,
+		})
 		.add_plugin(TilemapPlugin)
 		.insert_resource(ChunkManager::default())
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
+        .add_startup_system(setup_player)
+        .add_system(update_velocity)
+        .add_system(move_player)
 		.add_system(update_camera)
 		.add_system(spawn_chunks)
 		.add_system(despawn_chunks)
@@ -49,8 +60,8 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 	commands.spawn(Camera2dBundle::default());
-	commands.spawn(SpriteBundle {
-		texture: asset_server.load("test.png"),
-		..default()
-	});
+	// commands.spawn(SpriteBundle {
+		// texture: asset_server.load("test.png"),
+		// ..default()
+	// });
 }
