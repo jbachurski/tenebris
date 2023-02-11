@@ -116,6 +116,9 @@ fn setup(
 fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
+fn tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
+}
 
 pub fn spawn_tile(
 	commands: &mut Commands,
@@ -124,18 +127,21 @@ pub fn spawn_tile(
 	tile_manager: &TileManager,
 	tile_position: UVec2,
 ) {
+	let index = {
+		if tile_manager.is_wall[tile_position.x as usize][tile_position.y as usize] {
+			0
+		} else {
+			1460
+		}
+	};
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform {
-				translation: Vec3::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+				translation: tile_position_to_position(&tile_position).extend(0.0),
 				scale: Vec2::splat(1.).extend(0.),
 				..default()
 			},
-			sprite: TextureAtlasSprite::new(if tile_manager.is_wall[tile_position.x as usize][tile_position.y as usize] {
-				0
-			} else {
-				1460
-			}),
+			sprite: TextureAtlasSprite::new(index),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
