@@ -8,6 +8,9 @@ pub struct Player;
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
 
+#[derive(Component, Deref, DerefMut)]
+pub struct ShootingTimer(Timer);
+
 pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity, &Acceleration), With<Player>>) {
 	let (mut velocity, acceleration) = query.single_mut();
 	let velocity_vec = &mut velocity.0;
@@ -77,5 +80,6 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			size: Vec2::new(32., 32.),
 		},
 		CollidesWithWalls,
+		ShootingTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
 	));
 }

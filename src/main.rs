@@ -1,6 +1,11 @@
 use std::cmp::min;
 
-use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
+use bevy::{
+	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+	math::Vec3Swizzles,
+	prelude::*,
+	render::render_resource::*,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
 
@@ -18,6 +23,9 @@ use assets::*;
 
 mod tiles;
 use tiles::*;
+
+mod shooting;
+use shooting::*;
 
 mod mob;
 use mob::*;
@@ -55,6 +63,8 @@ fn main() {
 				}),
 		)
 		.add_plugin(DebugLinesPlugin::default())
+		.add_plugin(LogDiagnosticsPlugin::default())
+		.add_plugin(FrameTimeDiagnosticsPlugin::default())
 		.insert_resource(TileManager::default())
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
@@ -63,6 +73,8 @@ fn main() {
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
 		.add_system(animate_player_sprite)
+		.add_system(player_shoot)
+		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
@@ -70,8 +82,8 @@ fn main() {
 		.add_system(run_wraith)
 		.add_system(run_goo)
 		.add_system(move_by_velocity)
-		.add_system(update_camera.after(move_by_velocity))
 		.add_system(resolve_collisions.after(move_by_velocity))
+		.add_system(update_camera.after(resolve_collisions))
 		.add_startup_system(spawn_enemies)
 		.run();
 }
