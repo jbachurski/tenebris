@@ -87,7 +87,7 @@ fn main() {
 		.add_system(run_wraith)
 		.add_system(run_goo)
 		.add_system(move_by_velocity)
-		.add_system(resolve_collisions.after(move_by_velocity))
+		.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(update_camera.after(resolve_collisions))
 		.add_startup_system(spawn_enemies)
 		.run();
