@@ -8,6 +8,7 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
+use bevy_rapier2d::{na::Rotation, prelude::*};
 
 mod camera;
 use camera::*;
@@ -67,6 +68,7 @@ fn main() {
 					},
 				}),
 		)
+		.add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(32.))
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -86,9 +88,9 @@ fn main() {
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
-		.add_system(move_by_velocity)
-		.add_system(resolve_collisions.before(move_by_velocity))
-		.add_system(update_camera.after(resolve_collisions))
+		//.add_system(move_by_velocity)
+		//.add_system(resolve_collisions.before(move_by_velocity))
+		.add_system(update_camera) //.after(resolve_collisions))
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -137,11 +139,7 @@ pub fn spawn_tile(
 ) {
 	commands
 		.spawn(SpriteSheetBundle {
-			transform: Transform {
-				translation: Vec3::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
-				scale: Vec2::splat(1.).extend(0.),
-				..default()
-			},
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
 			sprite: TextureAtlasSprite::new(
 				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
 					0
@@ -152,6 +150,10 @@ pub fn spawn_tile(
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
+		.insert(RigidBody::Fixed)
+		.insert(Velocity::default())
+		.insert(Collider::cuboid(16.0, 16.0))
+		.insert(Sensor)
 		.insert(Tile);
 }
 
@@ -202,14 +204,20 @@ pub fn despawn_tiles(
 	}
 }
 
-pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
-	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
+pub fn update_tiles(
+	mut commands: Commands,
+	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
+	simulator: ResMut<Simulator>,
+) {
+	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
 			*ta_sprite = TextureAtlasSprite::new(
 				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
+					commands.entity(entity).remove::<Sensor>();
 					0
 				} else {
+					commands.entity(entity).insert(Sensor);
 					1460
 				},
 			);
