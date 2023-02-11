@@ -1,5 +1,6 @@
-use crate::player::*;
 use bevy::prelude::*;
+
+use crate::player::*;
 
 pub fn update_camera(
 	mut camera_position_current: Local<Vec2>,

@@ -8,7 +8,7 @@ mod camera;
 use camera::*;
 
 mod player;
-use player::*;
+//use player::*;
 
 mod enemy;
 use enemy::*;
@@ -75,7 +75,6 @@ fn main() {
 		.add_system(update_tiles)
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
-		.add_startup_system(spawn_enemies)
 		.run();
 }
 
@@ -154,8 +153,8 @@ pub fn spawn_tiles(
 			{
 				let tile_position = UVec2::new(x, y);
 				if !tile_manager.spawned_tiles.contains(&tile_position) {
-					tile_manager.spawned_tiles.insert(tile_position);
-					spawn_tile(&mut commands, &asset_server, &atlases, &tile_manager, tile_position);
+					//tile_manager.spawned_tiles.insert(tile_position);
+					//spawn_tile(&mut commands, &asset_server, &atlases, &tile_manager, tile_position);
 				}
 			}
 		}

@@ -1,16 +1,9 @@
 use bevy::prelude::*;
 
+use crate::mob::*;
+
 #[derive(Component)]
 pub struct Player;
-
-#[derive(Component)]
-pub struct Velocity(Vec2);
-
-#[derive(Component)]
-pub struct Acceleration {
-	max_velocity: f32,
-	rate: f32,
-}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
@@ -46,12 +39,6 @@ pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&m
 
 	acceleration_vec = acceleration_vec.clamp_length_max(acceleration.rate);
 	*velocity_vec = (*velocity_vec + acceleration_vec + passive_deceleration).clamp_length_max(acceleration.max_velocity);
-}
-
-pub fn move_player(mut query: Query<(&mut Transform, &Velocity), With<Player>>) {
-	let (mut transform, velocity) = query.single_mut();
-
-	transform.translation += velocity.0.extend(0.0);
 }
 
 pub fn animate_player_sprite(
