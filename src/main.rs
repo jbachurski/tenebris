@@ -8,7 +8,7 @@ mod camera;
 use camera::*;
 
 mod player;
-//use player::*;
+use player::*;
 
 mod enemy;
 use enemy::*;
@@ -67,9 +67,9 @@ fn main() {
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
-		.add_system(move_player)
+		.add_system(move_by_velocity)
 		.add_system(animate_player_sprite)
-		.add_system(update_camera.after(move_player))
+		.add_system(update_camera.after(move_by_velocity))
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
@@ -155,8 +155,8 @@ pub fn spawn_tiles(
 			{
 				let tile_position = UVec2::new(x, y);
 				if !tile_manager.spawned_tiles.contains(&tile_position) {
-					//tile_manager.spawned_tiles.insert(tile_position);
-					//spawn_tile(&mut commands, &asset_server, &atlases, &tile_manager, tile_position);
+					tile_manager.spawned_tiles.insert(tile_position);
+					spawn_tile(&mut commands, &asset_server, &atlases, &tile_manager, tile_position);
 				}
 			}
 		}
