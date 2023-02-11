@@ -25,7 +25,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			..default()
 		})
 		.insert(EnemySkeleton)
-		.insert(Bounded { radius: 30 })
+		.insert(Bounded {
+			size: Vec2::splat(2. * 30.),
+		})
 		.insert(Mob { health: 3 });
 	commands
 		.spawn(MaterialMesh2dBundle {
@@ -35,7 +37,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			..default()
 		})
 		.insert(EnemySkeleton)
-		.insert(Bounded { radius: 30 })
+		.insert(Bounded {
+			size: Vec2::splat(2. * 30.),
+		})
 		.insert(Mob { health: 3 });
 	commands
 		.spawn(MaterialMesh2dBundle {
@@ -48,7 +52,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			angle: 0.0,
 			angle_vel: 0.0,
 		})
-		.insert(Bounded { radius: 30 })
+		.insert(Bounded {
+			size: Vec2::splat(2. * 30.),
+		})
 		.insert(Mob { health: 3 });
 }
 
