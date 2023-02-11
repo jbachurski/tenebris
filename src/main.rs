@@ -7,9 +7,6 @@ use bevy_prototype_debug_lines::*;
 mod camera;
 use camera::*;
 
-mod chunk;
-use chunk::*;
-
 mod player;
 use player::*;
 
