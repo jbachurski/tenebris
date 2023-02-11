@@ -31,7 +31,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(Vec3::new(50.0, 100.0, 1.0)),
+			transform: Transform::from_translation(Vec3::new(3200 + 50.0, 3200 + 100.0, 1.0)),
 			..default()
 		})
 		.insert(EnemySkeleton)
@@ -45,7 +45,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(Vec3::new(-20.0, -100.0, 1.0)),
+			transform: Transform::from_translation(Vec3::new(3200. + -20.0, 3200. + -100.0, 1.0)),
 			..default()
 		})
 		.insert(EnemySkeleton)
@@ -59,7 +59,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::ORANGE_RED)),
-			transform: Transform::from_translation(Vec3::new(200.0, -50.0, 1.0)),
+			transform: Transform::from_translation(Vec3::new(3200. + 200.0, 3200. + -50.0, 1.0)),
 			..default()
 		})
 		.insert(EnemyWraith {
@@ -70,13 +70,12 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO))
-		.insert(CollidesWithWalls);
+		.insert(Velocity(Vec2::ZERO));
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::BLUE)),
-			transform: Transform::from_translation(Vec3::new(-300.0, 0.0, 1.0)),
+			transform: Transform::from_translation(Vec3::new(3200. + -300.0, 3200. + 0.0, 1.0)),
 			..default()
 		})
 		.insert(EnemyGoo {

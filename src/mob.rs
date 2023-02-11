@@ -33,34 +33,22 @@ pub fn move_by_velocity(mut entities: Query<(&mut Transform, &Velocity)>) {
 pub fn resolve_collisions(
 	simulator: Res<Simulator>,
 	tiles: Query<&Transform, With<Tile>>,
-	mut entities: Query<(&mut Transform, &Bounded), (With<CollidesWithWalls>, Without<Tile>, Without<EnemyWraith>)>,
+	mut entities: Query<(&mut Transform, &mut Velocity, &Bounded), (With<CollidesWithWalls>, Without<Tile>)>,
 ) {
-	for (mut transform, bounded) in entities.iter_mut() {
+	for (mut transform, mut velocity, bounded) in entities.iter_mut() {
+		let projected_translation = transform.translation + velocity.0.extend(0.0);
+
 		for tile_transform in tiles.iter() {
 			let (tile_x, tile_y) = position_to_tile_position(&tile_transform.translation.xy()).into();
 			if simulator.grid.is_wall[tile_x as usize][tile_y as usize] {
-				let bounding_box = Rect::from_center_size(transform.translation.xy(), bounded.size);
-				let tile_bounding_box = Rect::from_corners(
-					tile_transform.translation.xy(),
-					tile_transform.translation.xy() + Vec2::new(32., 32.),
-				);
 				match collide(
-					bounding_box.center().extend(0.),
-					bounding_box.size(),
-					tile_bounding_box.center().extend(0.),
-					tile_bounding_box.size(),
+					projected_translation,
+					bounded.size,
+					tile_transform.translation,
+					Vec2::new(32., 32.),
 				) {
-					Some(Collision::Left) => {
-						transform.translation.x = tile_bounding_box.min.x - (bounded.size.x / 2.);
-					},
-					Some(Collision::Right) => {
-						transform.translation.x = tile_bounding_box.max.x + (bounded.size.x / 2.);
-					},
-					Some(Collision::Top) => {
-						transform.translation.y = tile_bounding_box.max.y + (bounded.size.y / 2.);
-					},
 					Some(_) => {
-						transform.translation.y = tile_bounding_box.min.y - (bounded.size.y / 2.);
+						velocity.0 = Vec2::ZERO;
 					},
 					None => {},
 				}
