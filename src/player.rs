@@ -69,6 +69,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		},
 		SpriteSheetBundle {
 			texture_atlas: texture_atlas_handle,
+			transform: Transform::from_translation(Vec3::new(0.0, 0.0, 2.0)),
 			..default()
 		},
 		AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),

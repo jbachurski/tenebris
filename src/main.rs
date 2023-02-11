@@ -75,6 +75,8 @@ fn main() {
 		.add_system(update_tiles)
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
+		.add_system(run_goo)
+		.add_startup_system(spawn_enemies)
 		.run();
 }
 
