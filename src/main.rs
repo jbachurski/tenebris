@@ -1,14 +1,8 @@
 use std::cmp::min;
 
-use bevy::{
-	math::{Vec2Swizzles, Vec3Swizzles},
-	prelude::*,
-	render::render_resource::*,
-};
-use bevy_ecs_tilemap::prelude::*;
+use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
-use rand::prelude::*;
 
 mod camera;
 use camera::*;
@@ -27,6 +21,9 @@ use assets::*;
 
 mod tiles;
 use tiles::*;
+
+mod mob;
+use mob::*;
 
 #[derive(Component)]
 pub struct Tile;
@@ -89,7 +86,7 @@ fn setup(
 	mut commands: Commands,
 	mut atlases: ResMut<Atlases>,
 	asset_server: Res<AssetServer>,
-	mut tiles: Res<TileManager>,
+	mut _tiles: Res<TileManager>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
 	setup_camera(&mut commands);
@@ -121,7 +118,7 @@ fn position_to_tile_position(position: &Vec2) -> UVec2 {
 
 pub fn spawn_tile(
 	commands: &mut Commands,
-	asset_server: &AssetServer,
+	_asset_server: &AssetServer,
 	atlases: &Atlases,
 	tile_manager: &TileManager,
 	tile_position: UVec2,
@@ -195,7 +192,7 @@ pub fn update_tiles(
 	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
 	tile_manager: ResMut<TileManager>,
 ) {
-	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
+	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if tile_manager.spawned_tiles.contains(&tile_position) {
 			*ta_sprite = TextureAtlasSprite::new(if tile_manager.is_wall[tile_position.x as usize][tile_position.y as usize] {
