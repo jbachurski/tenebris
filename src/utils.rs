@@ -1,6 +1,9 @@
 use bevy::prelude::UVec2;
 use rand::*;
 
+pub const MAP_RADIUS: u32 = 100;
+pub const MAP_RADIUS_USIZE: usize = MAP_RADIUS as usize;
+
 pub fn _todo_remove_norm(i: f32, j: f32) -> f32 {
 	(i.powf(2.0) + j.powf(2.0)).sqrt()
 }

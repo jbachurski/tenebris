@@ -4,6 +4,9 @@ use rand::*;
 use crate::{tiles::*, utils::*};
 
 #[derive(Resource)]
+pub struct SimulatorTimer(pub Timer);
+
+#[derive(Resource)]
 pub struct Simulator {
 	width: u32,
 	ca_params: (u32, u32),
@@ -16,10 +19,6 @@ pub struct Simulator {
 	structure_dist: u32,
 	structure_radius: u32,
 	pub grid: TileManager,
-}
-
-fn _todo_get_player_pos() -> UVec2 {
-	UVec2::new(0, 0)
 }
 
 impl Simulator {
@@ -72,21 +71,13 @@ impl Simulator {
 			.extend(poisson_disk_sample(&structure_choices, self.structure_dist as f32, self.n_structures).iter());
 
 		// TODO: Block out space for structures
-
-		// Step 10 times to initialise map
-		for i in 0..10 {
-			self.step();
-		}
 	}
 
-	pub fn step(&mut self) {
-		// Step all of the tiles GoL style
+	pub fn step(&mut self, player_pos: UVec2) {
+		// Step the cellular automaton \o/
 		for i in 0..self.width {
 			for j in 0..self.width {
-				//if self.grid.is_wall[i as usize][j as usize] != self.calc(UVec2::new(i, j)) {
-				//    panic!("OMG")
-				//}
-				self.grid.is_wall[i as usize][j as usize] = self.calc(UVec2::new(i, j));
+				self.grid.is_wall[i as usize][j as usize] = self.calc(UVec2::new(i, j), player_pos);
 			}
 		}
 		// Check out all of the available cells if any should be despawned
@@ -94,7 +85,7 @@ impl Simulator {
 		let (_, outerrad) = self.reality_params;
 		let outerrad = outerrad as f32;
 		for ac in self.grid.reality_bubble.iter() {
-			let dist = ac.as_vec2().distance(_todo_get_player_pos().as_vec2());
+			let dist = ac.as_vec2().distance(player_pos.as_vec2());
 			if dist > outerrad as f32 && rand::random::<f32>() < self.despawn_prob {
 				// Despawn
 				if !self.cannot_forget(*ac) {
@@ -111,14 +102,14 @@ impl Simulator {
 		}
 	}
 
-	fn calc(&mut self, loc: UVec2) -> bool {
+	fn calc(&mut self, loc: UVec2, player_pos: UVec2) -> bool {
 		let (i, j) = loc.into();
 		let (k, b) = self.ca_params;
 		let (innerrad, outerrad) = self.reality_params;
 		let innerrad = innerrad as f32;
 		let outerrad = outerrad as f32;
 		// Calculate distance from player
-		let dist = loc.as_vec2().distance(_todo_get_player_pos().as_vec2());
+		let dist = loc.as_vec2().distance(player_pos.as_vec2());
 		// Update available_cells
 		if dist < outerrad {
 			self.grid.reality_bubble.insert(loc);

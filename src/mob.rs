@@ -28,7 +28,7 @@ pub struct Acceleration {
 /*
 pub fn move_by_velocity(mut entities: Query<(&mut Transform, &Velocity)>) {
 	for (mut transform, velocity) in entities.iter_mut() {
-		transform.translation += velocity.0.extend(0.0);
+		transform.translation += velocity.0.extend(0.0) * time.delta_seconds() * 60.0;
 	}
 }
 

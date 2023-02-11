@@ -35,6 +35,7 @@ mod tilesim;
 use tilesim::*;
 
 mod utils;
+use utils::*;
 
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
@@ -72,7 +73,19 @@ fn main() {
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
-		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (0, 2000), 2, 0, 20, 5))
+		.insert_resource(Simulator::new(
+			MAP_RADIUS * 2,
+			(3, 6),
+			(10, MAP_RADIUS - 2),
+			(10, 13),
+			15,
+			(20, 30),
+			2,
+			0,
+			20,
+			5,
+		))
+		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
@@ -91,6 +104,7 @@ fn main() {
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(update_camera) //.after(resolve_collisions))
+		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -178,6 +192,20 @@ pub fn spawn_tiles(
 				}
 			}
 		}
+	}
+}
+
+pub fn simulator_step(
+	mut simulator: ResMut<Simulator>,
+	mut player: Query<&Transform, With<Player>>,
+	mut timer: ResMut<SimulatorTimer>,
+	time: Res<Time>,
+) {
+	timer.0.tick(time.delta());
+	if timer.0.just_finished() {
+		let player_trans = player.single().translation.truncate();
+		let player_pos = position_to_tile_position(&player_trans);
+		simulator.step(player_pos);
 	}
 }
 
