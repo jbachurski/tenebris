@@ -16,6 +16,9 @@ use assets::*;
 mod tiles;
 use tiles::*;
 
+mod mob;
+use mob::*;
+
 #[derive(Component)]
 pub struct Tile;
 

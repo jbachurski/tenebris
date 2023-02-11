@@ -1,6 +1,9 @@
+use std::{f32::consts::TAU, vec::Vec};
+
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_debug_lines::*;
-use std::{f32::consts::TAU, vec::Vec};
+
+use crate::mob::*;
 
 const GRADE_VECTORS: usize = 20;
 
@@ -21,7 +24,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			transform: Transform::from_translation(Vec3::new(50.0, 100.0, 1.0)),
 			..default()
 		})
-		.insert(EnemySkeleton);
+		.insert(EnemySkeleton)
+		.insert(Bounded { radius: 30 })
+		.insert(Mob { health: 3 });
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
@@ -29,7 +34,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			transform: Transform::from_translation(Vec3::new(-20.0, -100.0, 1.0)),
 			..default()
 		})
-		.insert(EnemySkeleton);
+		.insert(EnemySkeleton)
+		.insert(Bounded { radius: 30 })
+		.insert(Mob { health: 3 });
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
@@ -40,7 +47,9 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(EnemyWraith {
 			angle: 0.0,
 			angle_vel: 0.0,
-		});
+		})
+		.insert(Bounded { radius: 30 })
+		.insert(Mob { health: 3 });
 }
 
 fn lerp(x1: f32, y1: f32, x2: f32, y2: f32, x: f32) -> f32 {
