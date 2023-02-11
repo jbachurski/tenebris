@@ -29,7 +29,6 @@ class RadarSimulatorWithCampfires(RadarSimulator):
         super().__init__(*args, **kwargs)
         self.campfire_radius = campfire_radius
         self.campfires = []
-        self.past_campfires = []
 
     def toggle_campfire(self, i, j):
         if (i, j) in self.campfires:
@@ -39,7 +38,6 @@ class RadarSimulatorWithCampfires(RadarSimulator):
 
     def place_campfire(self, i, j):
         self.campfires.append((i, j))
-        self.past_campfires.append((i, j))
         print("Placed campfire at", (i, j))
 
     def remove_campfire(self, i, j):
