@@ -7,6 +7,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_prototype_debug_lines::*;
 use rand::prelude::*;
 
 mod camera;
@@ -14,6 +15,9 @@ use camera::*;
 
 mod chunk;
 use chunk::*;
+
+mod enemy;
+use enemy::*;
 
 mod assets;
 use assets::*;
@@ -58,6 +62,7 @@ fn main() {
 					},
 				}),
 		)
+		.add_plugin(DebugLinesPlugin::default())
 		.insert_resource(TileManager::default())
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
@@ -67,6 +72,9 @@ fn main() {
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
+		.add_system(run_skeleton)
+		.add_system(run_wraith)
+		.add_startup_system(spawn_enemies)
 		.run();
 }
 
