@@ -1,9 +1,7 @@
-use crate::tiles::*;
-use crate::utils::*;
-
-use bevy::prelude::*;
-use bevy::utils::*;
+use bevy::{prelude::*, utils::*};
 use rand::*;
+
+use crate::{tiles::*, utils::*};
 
 #[derive(Resource)]
 pub struct SimulatorTimer(pub Timer);
