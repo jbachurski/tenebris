@@ -1,6 +1,6 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::collide_aabb::*};
 
-use crate::{enemy::EnemyWraith, tiles::*};
+use crate::{enemy::EnemyWraith, tiles::*, tilesim::*};
 
 #[derive(Component)]
 pub struct Bounded {
@@ -31,14 +31,14 @@ pub fn move_by_velocity(mut entities: Query<(&mut Transform, &Velocity)>) {
 }
 
 pub fn resolve_collisions(
-	tile_manager: Res<TileManager>,
+	simulator: Res<Simulator>,
 	tiles: Query<&Transform, With<Tile>>,
 	mut entities: Query<(&mut Transform, &Bounded), (With<CollidesWithWalls>, Without<Tile>, Without<EnemyWraith>)>,
 ) {
 	for (mut transform, bounded) in entities.iter_mut() {
 		for tile_transform in tiles.iter() {
 			let (tile_x, tile_y) = position_to_tile_position(&tile_transform.translation.xy()).into();
-			if tile_manager.is_wall[tile_x as usize][tile_y as usize] {
+			if simulator.grid.is_wall[tile_x as usize][tile_y as usize] {
 				let bounding_box = Rect::from_center_size(transform.translation.xy(), bounded.size);
 				let tile_bounding_box = Rect::from_corners(
 					tile_transform.translation.xy(),
