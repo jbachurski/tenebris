@@ -8,6 +8,9 @@ use camera::*;
 mod chunk;
 use chunk::*;
 
+mod enemy;
+use enemy::*;
+
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 fn main() {
@@ -45,9 +48,11 @@ fn main() {
 		.insert_resource(ChunkManager::default())
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
+		.add_startup_system(spawn_enemy)
 		.add_system(update_camera)
 		.add_system(spawn_chunks)
 		.add_system(despawn_chunks)
+		.add_system(run_enemy)
 		.run();
 }
 
