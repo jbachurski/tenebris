@@ -47,9 +47,6 @@ pub fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, atlases:
 		0.0,
 	));
 
-	//let id = rng.gen_range(0..(51 * 48)); // FIXME: Magic number.
-
-	//atlases.cave_atlas.
 	let texture_handle: Handle<Image> = asset_server.load("test.png");
 	commands.entity(tilemap_entity).insert(TilemapBundle {
 		grid_size: TILE_SIZE.into(),
