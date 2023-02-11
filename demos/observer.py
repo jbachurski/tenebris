@@ -101,7 +101,7 @@ if __name__ == "__main__":
         stepangle=-1,
         campfire_radius=15,
         innerrad=15,
-        outerrad=25,
+        outerrad=20,
         half_life=2,
     )
     pf = ObserverFrontend(s, pxsz=6, fog_of_war=True)
