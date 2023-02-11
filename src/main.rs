@@ -50,11 +50,12 @@ fn main() {
 		.insert_resource(ChunkManager::default())
 		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
-		.add_startup_system(spawn_enemy)
+		.add_startup_system(spawn_enemies)
 		.add_system(update_camera)
 		.add_system(spawn_chunks)
 		.add_system(despawn_chunks)
-		.add_system(run_enemy)
+		.add_system(run_skeleton)
+		.add_system(run_wraith)
 		.run();
 }
 
