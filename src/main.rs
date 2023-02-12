@@ -60,7 +60,7 @@ fn main() {
 					window: WindowDescriptor {
 						width: SCREEN_DIMENSIONS.0,
 						height: SCREEN_DIMENSIONS.1,
-						title: "Tenebris".into(),
+						title: "Memorynth".into(),
 						resizable: false,
 						mode: WindowMode::Windowed,
 						..default()
@@ -117,6 +117,7 @@ fn main() {
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
+		.add_system(mob_face_movement)
 		.run();
 }
 

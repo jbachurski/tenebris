@@ -79,6 +79,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			angle: 0.0,
 			angle_vel: 0.0,
 		})
+		.insert(Mob { health: 3 })
 		.insert(Bounded {
 			size: Vec2::splat(2. * 20.),
 		})
@@ -99,6 +100,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(EnemyGoo {
 			state: EnemyGooState::Waiting(0.0),
 		})
+		.insert(Mob { health: 3 })
 		.insert(Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,

@@ -15,6 +15,7 @@ pub struct Mob {
 	pub health: u32,
 }
 
+
 pub fn projectile_hit_mobs(
 	mut commands: Commands,
 	mut projectiles: Query<(Entity, &Transform, &Bounded, &Projectile)>,
@@ -29,6 +30,21 @@ pub fn projectile_hit_mobs(
 				commands.entity(proj_entity).insert(Despawn);
 				break;
 			}
+		}
+	}
+}
+
+#[derive(Component)]
+pub struct SpriteFacingMovement;
+
+pub fn mob_face_movement(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocity), With<SpriteFacingMovement>>) {
+	for (mut sprite, velocity) in mob_query.iter_mut() {
+		// Want to avoid flipping when x = 0
+		if velocity.linvel.x < 0.0 {
+			sprite.flip_x = true;
+		}
+		if velocity.linvel.x > 0.0 {
+			sprite.flip_x = false;
 		}
 	}
 }
