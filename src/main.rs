@@ -8,6 +8,7 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
+use bevy_rapier2d::{na::Rotation, prelude::*};
 
 mod camera;
 use camera::*;
@@ -34,6 +35,7 @@ mod tilesim;
 use tilesim::*;
 
 mod utils;
+use utils::*;
 
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
@@ -67,10 +69,23 @@ fn main() {
 					},
 				}),
 		)
+		.add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(32.))
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
-		.insert_resource(Simulator::new(200, (3, 6), (20, 98), (10, 13), 15, (0, 2000), 2, 0, 20, 5))
+		.insert_resource(Simulator::new(
+			MAP_RADIUS * 2,
+			(3, 6),
+			(10, MAP_RADIUS - 2),
+			(10, 13),
+			15,
+			(20, 30),
+			2,
+			0,
+			20,
+			5,
+		))
+		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
 		.add_plugin(WorldInspectorPlugin)
@@ -86,9 +101,10 @@ fn main() {
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
-		.add_system(move_by_velocity)
-		.add_system(resolve_collisions.before(move_by_velocity))
-		.add_system(update_camera.after(resolve_collisions))
+		//.add_system(move_by_velocity)
+		//.add_system(resolve_collisions.before(move_by_velocity))
+		.add_system(update_camera) //.after(resolve_collisions))
+		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
 		.run();
 }
@@ -322,15 +338,14 @@ pub fn spawn_tile(
 ) {
 	commands
 		.spawn(SpriteSheetBundle {
-			transform: Transform {
-				translation: tile_position_to_position(&tile_position).extend(0.0),
-				scale: Vec2::splat(1.).extend(0.),
-				..default()
-			},
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
 			sprite: TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position)),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
+		.insert(RigidBody::Fixed)
+		.insert(Velocity::default())
+		.insert(Sensor)
 		.insert(Tile);
 }
 
@@ -358,6 +373,20 @@ pub fn spawn_tiles(
 	}
 }
 
+pub fn simulator_step(
+	mut simulator: ResMut<Simulator>,
+	mut player: Query<&Transform, With<Player>>,
+	mut timer: ResMut<SimulatorTimer>,
+	time: Res<Time>,
+) {
+	timer.0.tick(time.delta());
+	if timer.0.just_finished() {
+		let player_trans = player.single().translation.truncate();
+		let player_pos = position_to_tile_position(&player_trans);
+		simulator.step(player_pos);
+	}
+}
+
 pub fn despawn_tiles(
 	mut commands: Commands,
 	tiles: Query<(Entity, &Transform), With<Tile>>,
@@ -375,17 +404,21 @@ pub fn despawn_tiles(
 				|| tile_position.y > camera_tile_position.y.saturating_add(FOG_RADIUS)
 			{
 				simulator.grid.spawned_tiles.remove(&tile_position);
-				commands.entity(entity).despawn_recursive();
+				commands.entity(entity).despawn();
 			}
 		}
 	}
 }
 
-pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
-	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
+pub fn update_tiles(
+	mut commands: Commands,
+	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
+	simulator: ResMut<Simulator>,
+) {
+	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position))
+			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position));
 		}
 	}
 }

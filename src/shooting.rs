@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 use crate::{mob::*, player::*};
 
@@ -62,8 +63,13 @@ fn shoot_projectile(
 			transform: *player_transform,
 			..default()
 		},
-		Velocity(player_velocity.0 + (cursor_position - player_transform.translation.truncate()).normalize() * 10.0),
+		Velocity {
+			linvel: (cursor_position - player_transform.translation.truncate()).normalize() * 10.0 * 60.,
+			angvel: 0.0,
+		},
 		ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+		RigidBody::Dynamic,
+		LockedAxes::ROTATION_LOCKED,
 	));
 }
 

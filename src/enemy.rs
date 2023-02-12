@@ -2,6 +2,7 @@ use std::{f32::consts::TAU, vec::Vec};
 
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_debug_lines::*;
+use bevy_rapier2d::prelude::*;
 
 use crate::mob::*;
 
@@ -39,8 +40,14 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO))
-		.insert(CollidesWithWalls);
+		.insert(Velocity {
+			linvel: Vec2::ZERO,
+			angvel: 0.0,
+		})
+		.insert(RigidBody::Dynamic)
+		.insert(LockedAxes::ROTATION_LOCKED)
+		.insert(CollidesWithWalls)
+		.insert(Collider::cuboid(12.0, 12.0));
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
@@ -53,8 +60,14 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO))
-		.insert(CollidesWithWalls);
+		.insert(Velocity {
+			linvel: Vec2::ZERO,
+			angvel: 0.0,
+		})
+		.insert(RigidBody::Dynamic)
+		.insert(LockedAxes::ROTATION_LOCKED)
+		.insert(CollidesWithWalls)
+		.insert(Collider::cuboid(12.0, 12.0));
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
@@ -70,7 +83,12 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			size: Vec2::splat(2. * 30.),
 		})
 		.insert(Mob { health: 3 })
-		.insert(Velocity(Vec2::ZERO));
+		.insert(RigidBody::Dynamic)
+		.insert(LockedAxes::ROTATION_LOCKED)
+		.insert(Velocity {
+			linvel: Vec2::ZERO,
+			angvel: 0.0,
+		});
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),
@@ -81,8 +99,14 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(EnemyGoo {
 			state: EnemyGooState::Waiting(0),
 		})
-		.insert(Velocity(Vec2::ZERO))
-		.insert(CollidesWithWalls);
+		.insert(Velocity {
+			linvel: Vec2::ZERO,
+			angvel: 0.0,
+		})
+		.insert(RigidBody::Dynamic)
+		.insert(LockedAxes::ROTATION_LOCKED)
+		.insert(CollidesWithWalls)
+		.insert(Collider::cuboid(12.0, 12.0));
 }
 
 fn lerp(x1: f32, y1: f32, x2: f32, y2: f32, x: f32) -> f32 {
@@ -140,11 +164,12 @@ pub fn run_skeleton(
 		let target_v = best_heading(GRADE_VECTORS, &mut grade);
 		let v_mod = (grade(target_v) / 0.7).clamp(0.0, 1.0).sqrt();
 
-		(*velocity).0 = target_v * 2.0 * v_mod;
+		velocity.linvel = target_v * 2.0 * v_mod * 60.;
 	}
 }
 
 pub fn run_wraith(
+	time: Res<Time>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut enemies: Query<(&Transform, &mut Velocity, &mut EnemyWraith), Without<Camera>>,
 	mut lines: ResMut<DebugLines>,
@@ -153,16 +178,18 @@ pub fn run_wraith(
 	for (enemy_tr, mut velocity, mut wraith) in enemies.iter_mut() {
 		let angle_diff = Vec2::from_angle(wraith.angle).angle_between(camera_pos.xy() - enemy_tr.translation.xy());
 
+		wraith.angle_vel *= f32::powf(0.5, time.delta_seconds());
 		wraith.angle_vel += (angle_diff / 3.0).clamp(-TAU / 1024.0, TAU / 1024.0);
 		wraith.angle_vel = wraith.angle_vel.clamp(-TAU / 256.0, TAU / 256.0);
-		wraith.angle += wraith.angle_vel;
+		wraith.angle += wraith.angle_vel * time.delta_seconds() * 60.0;
 		lines.line_colored(
 			enemy_tr.translation,
 			enemy_tr.translation + (Vec2::from_angle(wraith.angle) * 70.0).extend(1.0),
 			0.0,
 			Color::YELLOW,
 		);
-		(*velocity).0 = (3.0 + 1.0 * (1.0 - (angle_diff.abs() / (TAU / 4.0)).min(1.0))) * Vec2::from_angle(wraith.angle);
+		velocity.linvel =
+			(3.0 + 1.0 * (1.0 - (angle_diff.abs() / (TAU / 4.0)).min(1.0))) * Vec2::from_angle(wraith.angle) * 60.;
 	}
 }
 
@@ -177,10 +204,10 @@ pub fn run_goo(
 		goo.state = match goo.state {
 			EnemyGooState::Jumping(ticks, heading) => {
 				if ticks > 0 {
-					(*velocity).0 = heading * 6.0;
+					velocity.linvel = heading * 6.0 * 60.;
 					EnemyGooState::Jumping(ticks - 1, heading)
 				} else {
-					(*velocity).0 = Vec2::ZERO;
+					velocity.linvel = Vec2::ZERO;
 					EnemyGooState::Waiting(75)
 				}
 			},

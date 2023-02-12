@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 use crate::mob::*;
 
@@ -13,7 +14,7 @@ pub struct ShootingTimer(Timer);
 
 pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity, &Acceleration), With<Player>>) {
 	let (mut velocity, acceleration) = query.single_mut();
-	let velocity_vec = &mut velocity.0;
+	let velocity_vec = &mut velocity.linvel;
 
 	let mut acceleration_vec = Vec2::ZERO;
 	let mut passive_deceleration = Vec2::ZERO;
@@ -38,9 +39,10 @@ pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&m
 		passive_deceleration.y = -velocity_vec.y;
 	}
 
+	acceleration_vec *= 60.;
+
 	passive_deceleration = passive_deceleration.clamp_length_max(acceleration.rate * 2.0);
 
-	acceleration_vec = acceleration_vec.clamp_length_max(acceleration.rate);
 	*velocity_vec = (*velocity_vec + acceleration_vec + passive_deceleration).clamp_length_max(acceleration.max_velocity);
 }
 
@@ -65,10 +67,10 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 
 	commands.spawn((
 		Player,
-		Velocity(Vec2::new(0.0, 0.0)),
+		Velocity::default(),
 		Acceleration {
-			max_velocity: 10.0,
-			rate: 2.0,
+			max_velocity: 10.0 * 60.,
+			rate: 2.0 * 60.,
 		},
 		SpriteSheetBundle {
 			texture_atlas: texture_atlas_handle,
@@ -81,5 +83,9 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		},
 		CollidesWithWalls,
 		ShootingTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
+		RigidBody::Dynamic,
+		Collider::cuboid(12.0, 12.0),
+		Ccd::enabled(),
+		LockedAxes::ROTATION_LOCKED,
 	));
 }
