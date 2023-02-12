@@ -5,7 +5,7 @@ use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
 use super::{utils::*, Enemy};
-use crate::{mob::*, player::*};
+use crate::{gems::DropsGems, mob::*, player::*};
 
 const GRADE_VECTORS: usize = 20;
 
@@ -75,6 +75,7 @@ pub fn spawn_ranger(
 			hit_despawn: false,
 			til_despawn: f32::INFINITY,
 		},
+		DropsGems(2, 2),
 	));
 }
 

@@ -2,7 +2,7 @@ use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::*;
 
 use super::{utils::*, Enemy};
-use crate::{mob::*, player::*};
+use crate::{gems::DropsGems, mob::*, player::*};
 
 enum EnemyGooState {
 	Jumping(f32, Vec2),
@@ -43,6 +43,7 @@ pub fn spawn_goo(commands: &mut Commands, asset_server: &mut Res<AssetServer>, p
 			hit_despawn: false,
 			til_despawn: f32::INFINITY,
 		},
+		DropsGems(1, 2),
 	));
 }
 

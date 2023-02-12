@@ -5,7 +5,7 @@ use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
 use super::Enemy;
-use crate::{mob::*, player::*};
+use crate::{gems::*, mob::*, player::*};
 
 #[derive(Component)]
 pub struct EnemyWraith {
@@ -41,6 +41,7 @@ pub fn spawn_wraith(commands: &mut Commands, asset_server: &mut Res<AssetServer>
 			hit_despawn: false,
 			til_despawn: f32::INFINITY,
 		},
+		DropsGems(3, 3),
 	));
 }
 

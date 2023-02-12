@@ -16,7 +16,7 @@ use bevy::prelude::*;
 use goo::*;
 use rand::prelude::*;
 
-use crate::{player::*, tiles::*, tilesim::*};
+use crate::{player::*, tiles::*, tilesim::*, Despawn};
 
 #[derive(Resource)]
 pub struct EnemySpawner {
@@ -70,7 +70,7 @@ pub fn spawn_random_enemy(
 pub fn despawn_far_enemies(
 	mut commands: Commands,
 	simulator: Res<Simulator>,
-	enemy_query: Query<(Entity, &Transform), With<Enemy>>,
+	enemy_query: Query<(Entity, &Transform), (With<Enemy>, Without<EnemyBoss>)>,
 	player_query: Query<&Transform, With<Player>>,
 ) {
 	let player_position = player_query.single().translation.truncate();
@@ -79,7 +79,7 @@ pub fn despawn_far_enemies(
 	for (entity, transform) in enemy_query.iter() {
 		let position = transform.translation.truncate();
 		if (player_position - position).length() > despawn_distance {
-			commands.entity(entity).despawn();
+			commands.entity(entity).insert(Despawn);
 		}
 	}
 }
