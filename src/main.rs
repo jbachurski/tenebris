@@ -13,7 +13,7 @@ mod player;
 use player::*;
 
 mod enemies;
-use enemies::{goo::*, ranger::*, wraith::*, *};
+use enemies::{boss::*, goo::*, ranger::*, wraith::*, *};
 
 mod assets;
 use assets::*;
@@ -109,6 +109,7 @@ fn main() {
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
+		.add_system(run_boss)
 		.add_system(projectile_hit_mobs)
 		.add_system(unspawn_dead_mobs)
 		//.add_system(move_by_velocity)

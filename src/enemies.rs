@@ -6,6 +6,9 @@ pub mod utils;
 pub mod wraith;
 use wraith::*;
 
+pub mod boss;
+use boss::*;
+
 pub mod goo;
 use bevy::prelude::*;
 use goo::*;
@@ -14,4 +17,5 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 	spawn_rangers(&mut commands, &mut meshes, &mut materials);
 	spawn_wraiths(&mut commands, &mut meshes, &mut materials);
 	spawn_goos(&mut commands, &mut meshes, &mut materials);
+	spawn_boss(&mut commands, &mut meshes, &mut materials);
 }

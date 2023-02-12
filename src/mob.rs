@@ -20,6 +20,7 @@ pub struct Mob {
 pub struct PlayerDanger {
 	pub damage: i32,
 	pub hit_despawn: bool,
+	pub til_despawn: f32,
 }
 
 pub fn projectile_hit_mobs(
@@ -41,20 +42,25 @@ pub fn projectile_hit_mobs(
 }
 
 pub fn danger_hit_player(
+	time: Res<Time>,
 	mut commands: Commands,
-	mobs: Query<(Entity, &Transform, &Bounded, &PlayerDanger), Without<Player>>,
+	mut mobs: Query<(Entity, &Transform, &Bounded, &mut PlayerDanger), Without<Player>>,
 	mut players: Query<(&Transform, &Bounded, &mut Player)>,
 ) {
-	let (transform, bound, player) = players.single();
+	let (transform, bound, mut player) = players.single_mut();
 	let rect = Rect::from_center_size(transform.translation.xy(), bound.size);
-	for (entity, mob_transform, mob_bound, danger) in mobs.iter() {
+	for (entity, mob_transform, mob_bound, mut danger) in mobs.iter_mut() {
+		danger.til_despawn -= time.delta().as_secs_f32();
 		let mob_rect = Rect::from_center_size(mob_transform.translation.xy(), mob_bound.size);
 		if !rect.intersect(mob_rect).is_empty() {
-			println!("Damage player for {}", danger.damage);
+			player.take_damage(danger.damage);
 			if danger.hit_despawn {
 				commands.entity(entity).insert(Despawn);
 			}
 			break;
+		}
+		if danger.til_despawn < 0.0 {
+			commands.entity(entity).insert(Despawn);
 		}
 	}
 }
