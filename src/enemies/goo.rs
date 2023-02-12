@@ -1,9 +1,8 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_rapier2d::prelude::*;
 
-use crate::{mob::*, player::*};
-
 use super::utils::*;
+use crate::{mob::*, player::*};
 
 enum EnemyGooState {
 	Jumping(f32, Vec2),

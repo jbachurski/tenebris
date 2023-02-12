@@ -1,6 +1,11 @@
 use std::cmp::min;
 
-use bevy::{math::Vec3Swizzles, prelude::*, render::extract_resource::ExtractResource, utils::HashSet};
+use bevy::{
+	math::Vec3Swizzles,
+	prelude::*,
+	render::{extract_resource::ExtractResource, view::RenderLayers},
+	utils::HashSet,
+};
 use bevy_inspector_egui::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -57,6 +62,15 @@ pub fn spawn_tile(
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			sprite: TextureAtlasSprite::new(1775 + v % 3 + 51 * ((v / 3) % 3)),
+			texture_atlas: atlases.cave_atlas.clone(),
+			..default()
+		})
+		.insert(BackTile);
+
+	commands
+		.spawn(SpriteSheetBundle {
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.5),
 			sprite: TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position)),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
@@ -66,14 +80,6 @@ pub fn spawn_tile(
 		.insert(Collider::cuboid(16., 16.))
 		.insert(Sensor)
 		.insert(Tile);
-	commands
-		.spawn(SpriteSheetBundle {
-			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
-			sprite: TextureAtlasSprite::new(1775 + v % 3 + 51 * ((v / 3) % 3)),
-			texture_atlas: atlases.cave_atlas.clone(),
-			..default()
-		})
-		.insert(BackTile);
 
 	// Check if campfire tile
 	if simulator.grid.campfires.contains(&tile_position) {

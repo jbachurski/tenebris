@@ -48,7 +48,7 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 
 fn main() {
 	App::new()
-		.insert_resource(ClearColor(Color::rgb_u8(0, 0, 0)))
+		.insert_resource(ClearColor(Color::rgb_u8(1, 0, 0)))
 		.add_plugins(
 			DefaultPlugins
 				.set(AssetPlugin {
