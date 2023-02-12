@@ -13,7 +13,7 @@ mod player;
 use player::*;
 
 mod enemies;
-use enemies::{enemy::*, ranger::*, wraith::*};
+use enemies::{goo::*, ranger::*, wraith::*, *};
 
 mod assets;
 use assets::*;
