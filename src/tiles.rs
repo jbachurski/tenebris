@@ -26,11 +26,10 @@ pub struct Structure;
 #[derive(Component)]
 pub struct Overlay;
 
-#[derive(Reflect, Clone, Debug, Resource, InspectorOptions, ExtractResource)]
-#[reflect(Resource, InspectorOptions)]
+#[derive(Clone, Debug, Resource, InspectorOptions, ExtractResource)]
 pub struct TileManager {
-	pub is_wall: [[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
-	pub lightmap: [[f32; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+	pub is_wall: Box<[[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]>,
+	pub lightmap: Box<[[f32; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]>,
 	pub spawned_tiles: HashSet<UVec2>,
 	pub campfires: HashSet<UVec2>,
 	pub structures: HashMap<UVec2, StructureType>,
@@ -40,8 +39,8 @@ pub struct TileManager {
 impl Default for TileManager {
 	fn default() -> Self {
 		return Self {
-			is_wall: [[false; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
-			lightmap: [[0.; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+			is_wall: Box::new([[false; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]),
+			lightmap: Box::new([[0.; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]),
 			spawned_tiles: default(),
 			campfires: default(),
 			structures: default(),
