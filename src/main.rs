@@ -177,8 +177,11 @@ fn setup(
 fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
-fn tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
 	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
+}
+fn tile_position_rand(tile_position: UVec2) -> usize {
+	((31 * tile_position.x + 37 * tile_position.y + 1337) ^ (tile_position.x * 7 + tile_position.y * 11)) as usize
 }
 
 #[rustfmt::skip]
@@ -192,7 +195,7 @@ fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
 			.get(xx)
 			.map_or(false, |row| *row.get(yy).unwrap_or(&false))
 	};
-	let v = ((31*tile_position.x + 37*tile_position.y + 1337) ^ (tile_position.x*7 + tile_position.y*11)) as usize;
+	let v = tile_position_rand(tile_position);
 
 	const X: i32 = 1; // wall
 	const T: i32 = 0; // any
@@ -204,14 +207,14 @@ fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
 			[ // up
 				[T, O, T],
 				[X, X, X],
-				[X, X, X],
-				[X, X, X]
+				[T, T, T],
+				[T, T, T]
 			],
 			613 + v%4
 		),
 		(
 			[ // up left
-				[O, O, T],
+				[T, O, T],
 				[O, X, X],
 				[T, X, T],
 				[T, T, T]
@@ -220,7 +223,7 @@ fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
 		),
 		(
 			[ // up right
-				[T, O, O],
+				[T, O, T],
 				[X, X, O],
 				[T, X, T],
 				[T, T, T]
@@ -323,6 +326,7 @@ pub fn spawn_tile(
 	simulator: &Simulator,
 	tile_position: UVec2,
 ) {
+	let v = tile_position_rand(tile_position);
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
@@ -334,6 +338,14 @@ pub fn spawn_tile(
 		.insert(Velocity::default())
 		.insert(Sensor)
 		.insert(Tile);
+	commands
+		.spawn(SpriteSheetBundle {
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			sprite: TextureAtlasSprite::new(1775 + v % 3 + 51 * ((v / 3) % 3)),
+			texture_atlas: atlases.cave_atlas.clone(),
+			..default()
+		})
+		.insert(BackTile);
 }
 
 pub fn spawn_tiles(
@@ -427,12 +439,8 @@ pub fn despawn_tiles(
 	}
 }
 
-pub fn update_tiles(
-	mut commands: Commands,
-	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
-	simulator: ResMut<Simulator>,
-) {
-	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
+pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
+	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
 			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position));
