@@ -3,10 +3,17 @@ use bevy_rapier2d::prelude::*;
 
 use crate::mob::*;
 
+pub enum PlayerWeaponSelect {
+	Firebolt,
+	Crystals,
+	Mine,
+}
+
 #[derive(Component)]
 pub struct Player {
 	pub health: i32,
 	pub invincibility_seconds: f32,
+	pub select: PlayerWeaponSelect,
 }
 
 impl Player {
@@ -34,6 +41,22 @@ pub struct ShootingTimer(Timer);
 pub struct MovementPrecedence {
 	pub up_has_precedence: Option<bool>,
 	pub right_has_precedence: Option<bool>,
+}
+
+pub fn update_select(keyboard_input: Res<Input<KeyCode>>, mut players: Query<&mut Player>) {
+	if keyboard_input.just_pressed(KeyCode::Key1) {
+		for mut player in players.iter_mut() {
+			player.select = PlayerWeaponSelect::Firebolt;
+		}
+	} else if keyboard_input.just_pressed(KeyCode::Key2) {
+		for mut player in players.iter_mut() {
+			player.select = PlayerWeaponSelect::Crystals;
+		}
+	} else if keyboard_input.just_pressed(KeyCode::Key3) {
+		for mut player in players.iter_mut() {
+			player.select = PlayerWeaponSelect::Mine;
+		}
+	}
 }
 
 pub fn update_velocity(
@@ -138,6 +161,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		Player {
 			health: 20,
 			invincibility_seconds: 2.0,
+			select: PlayerWeaponSelect::Firebolt,
 		},
 		Velocity::default(),
 		Acceleration {

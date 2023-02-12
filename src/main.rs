@@ -105,6 +105,7 @@ fn main() {
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
+		.add_system(update_select)
 		.add_system(animate_player_sprite)
 		.add_system(player_shoot)
 		.add_system(tick_down_player_invincibility)

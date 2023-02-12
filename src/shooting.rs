@@ -8,6 +8,15 @@ pub struct Projectile {
 	pub damage: i32,
 }
 
+#[derive(Component)]
+pub struct Fireball;
+
+#[derive(Component)]
+pub struct Crystals;
+
+#[derive(Component)]
+pub struct Mine;
+
 #[derive(Component, Deref, DerefMut)]
 pub struct ProjectileTimer(Timer);
 
@@ -17,11 +26,11 @@ pub fn player_shoot(
 	asset_server: Res<AssetServer>,
 	windows: Res<Windows>,
 	mouse_button_input: Res<Input<MouseButton>>,
-	mut player_query: Query<(&mut ShootingTimer, &Transform, &Velocity), With<Player>>,
+	mut player_query: Query<(&mut ShootingTimer, &Transform, &Velocity, &Player)>,
 	camera_query: Query<(&Camera, &GlobalTransform)>,
 ) {
 	let (camera, camera_transform) = camera_query.single();
-	let (mut shooting_timer, player_transform, player_velocity) = player_query.single_mut();
+	let (mut shooting_timer, player_transform, player_velocity, player) = player_query.single_mut();
 
 	// Tick the timer only if shooting is on cooldown, or the player is trying to shoot
 	if !shooting_timer.just_finished() {
@@ -33,7 +42,14 @@ pub fn player_shoot(
 				shooting_timer.tick(time.delta());
 
 				let cursor_position = get_cursor_world_pos(camera, camera_transform, window, cursor_position);
-				shoot_projectile(commands, player_transform, player_velocity, asset_server, cursor_position)
+				cast_spell(
+					commands,
+					player_transform,
+					player_velocity,
+					&player.select,
+					asset_server,
+					cursor_position,
+				)
 			}
 		}
 	}
@@ -55,29 +71,36 @@ fn get_cursor_world_pos(camera: &Camera, camera_transform: &GlobalTransform, win
 	return world_pos.truncate();
 }
 
-fn shoot_projectile(
+fn cast_spell(
 	mut commands: Commands,
 	player_transform: &Transform,
-	player_velocity: &Velocity,
+	_player_velocity: &Velocity,
+	select: &PlayerWeaponSelect,
 	asset_server: Res<AssetServer>,
 	cursor_position: Vec2,
 ) {
-	commands.spawn((
-		SpriteBundle {
-			texture: asset_server.load("fire_bolt.png"),
-			transform: *player_transform,
-			..default()
+	match select {
+		PlayerWeaponSelect::Firebolt => {
+			commands.spawn((
+				SpriteBundle {
+					texture: asset_server.load("fire_bolt.png"),
+					transform: *player_transform,
+					..default()
+				},
+				Velocity {
+					linvel: (cursor_position - player_transform.translation.truncate()).normalize() * 10.0 * 60.,
+					angvel: 0.0,
+				},
+				Projectile { damage: 1 },
+				ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+				Bounded { size: Vec2::splat(16.0) },
+				RigidBody::Dynamic,
+				LockedAxes::ROTATION_LOCKED,
+			));
 		},
-		Velocity {
-			linvel: (cursor_position - player_transform.translation.truncate()).normalize() * 10.0 * 60.,
-			angvel: 0.0,
-		},
-		Projectile { damage: 1 },
-		ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
-		Bounded { size: Vec2::splat(16.0) },
-		RigidBody::Dynamic,
-		LockedAxes::ROTATION_LOCKED,
-	));
+		PlayerWeaponSelect::Crystals => {},
+		PlayerWeaponSelect::Mine => {},
+	};
 }
 
 pub fn despawn_old_projectiles(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut ProjectileTimer)>) {
