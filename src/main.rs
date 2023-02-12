@@ -38,6 +38,9 @@ use tilesim::*;
 mod utils;
 use utils::*;
 
+mod gems;
+use gems::*;
+
 mod structures;
 
 #[derive(Component)]
@@ -60,19 +63,6 @@ fn main() {
 		.insert_resource(ClearColor(Color::rgb_u8(1, 0, 0)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
-		.insert_resource(Simulator::new(
-			MAP_RADIUS * 2,
-			(3, 6),
-			(10, MAP_RADIUS - 6),
-			(10, 13),
-			15,
-			(20, 30),
-			2,
-			10,
-			20,
-			5,
-			20,
-		))
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(EnemySpawner {
 			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -108,6 +98,26 @@ fn main() {
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
 		.add_plugin(EntityCountDiagnosticsPlugin::default())
+		.insert_resource(Simulator::new(
+			MAP_RADIUS * 2,
+			(3, 6),
+			(10, MAP_RADIUS - 6),
+			(10, 13),
+			15,
+			(20, 30),
+			10,
+			60,
+			20,
+			5,
+			20,
+		))
+		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
+		.insert_resource(Atlases::default())
+		.insert_resource(Msaa { samples: 1 })
+		.insert_resource(EnemySpawner {
+			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+			max_enemy_count: 8,
+		})
 		.add_plugin(MinimapPlugin)
 		// Startup Systems
 		.add_startup_system(setup)
@@ -141,9 +151,11 @@ fn main() {
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
 		.add_system(simulator_step)
+		.add_system(update_lightmap)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
+		.add_system(player_collect_gem)
 		.run();
 }
 

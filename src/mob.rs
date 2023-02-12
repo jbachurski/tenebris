@@ -1,7 +1,13 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::Velocity;
+use rand::{thread_rng, Rng};
 
-use crate::{player::*, shooting::Projectile, Despawn};
+use crate::{
+	gems::{spawn_gems, DropsGems},
+	player::*,
+	shooting::Projectile,
+	Despawn,
+};
 
 pub const VELOCITY_ERROR: f32 = 1.0; // Rangers keep moving a lot for some reason
 
@@ -94,10 +100,18 @@ pub fn mob_face_movement_sprite(mut mob_query: Query<(&mut Sprite, &Velocity), W
 	}
 }
 
-pub fn unspawn_dead_mobs(mut commands: Commands, mobs: Query<(Entity, &Mob), Without<Player>>) {
-	for (entity, mob) in mobs.iter() {
+pub fn unspawn_dead_mobs(
+	mut commands: Commands,
+	mut asset_server: Res<AssetServer>,
+	mobs: Query<(Entity, &Transform, &Mob, &DropsGems), Without<Player>>,
+) {
+	for (entity, transform, mob, gem_dist) in mobs.iter() {
+		let mut rng = thread_rng();
+		let gem_count = gem_dist.0 + rng.gen_range(0..gem_dist.1);
+
 		if mob.health <= 0 {
 			commands.entity(entity).insert(Despawn);
+			spawn_gems(&mut commands, &mut asset_server, gem_count, transform.translation.truncate())
 		}
 	}
 }
