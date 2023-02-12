@@ -246,7 +246,7 @@ impl Simulator {
 	}
 
 	pub fn in_bounds(&self, loc: UVec2) -> bool {
-		return 0 <= loc.x && loc.x <= self.width && 0 <= loc.y && loc.y <= self.width;
+		return loc.x < self.width && loc.y < self.width;
 	}
 
 	pub fn debug_output(&self) {
