@@ -125,7 +125,7 @@ pub fn run_ranger(
 				.insert(PlayerDanger {
 					damage: 1,
 					hit_despawn: true,
-					til_despawn: 1.5,
+					til_despawn: 0.5,
 				})
 				.insert(Bounded { size: Vec2::splat(10.0) })
 				.insert(RigidBody::Dynamic)

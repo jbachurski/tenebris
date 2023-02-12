@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -51,6 +53,32 @@ pub struct MineCooldownTimer(pub Timer);
 pub struct MovementPrecedence {
 	pub up_has_precedence: Option<bool>,
 	pub right_has_precedence: Option<bool>,
+}
+
+pub fn update_cooldowns(
+	mut timers: Query<(
+		&Player,
+		&mut FireboltCooldownTimer,
+		&mut CrystalCooldownTimer,
+		&mut MineCooldownTimer,
+	)>,
+) {
+	for (player, mut fi, mut cr, mut mi) in timers.iter_mut() {
+		let a = if player.level == 0 {
+			1.0
+		} else if player.level == 1 {
+			0.8
+		} else if player.level == 2 {
+			0.6
+		} else if player.level == 3 {
+			0.4
+		} else {
+			0.25
+		};
+		fi.set_duration(Duration::from_secs_f32(a * FIREBALL_COOLDOWN));
+		cr.set_duration(Duration::from_secs_f32(a * CRYSTAL_COOLDOWN));
+		mi.set_duration(Duration::from_secs_f32(a * MINE_COOLDOWN));
+	}
 }
 
 pub fn update_select(keyboard_input: Res<Input<KeyCode>>, mut players: Query<&mut Player>) {
