@@ -37,7 +37,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		})
 		.insert(EnemySkeleton)
 		.insert(Bounded {
-			size: Vec2::splat(2. * 30.),
+			size: Vec2::splat(2. * 20.),
 		})
 		.insert(Mob { health: 3 })
 		.insert(Velocity {
@@ -57,7 +57,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		})
 		.insert(EnemySkeleton)
 		.insert(Bounded {
-			size: Vec2::splat(2. * 30.),
+			size: Vec2::splat(2. * 20.),
 		})
 		.insert(Mob { health: 3 })
 		.insert(Velocity {
@@ -80,7 +80,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			angle_vel: 0.0,
 		})
 		.insert(Bounded {
-			size: Vec2::splat(2. * 30.),
+			size: Vec2::splat(2. * 20.),
 		})
 		.insert(Mob { health: 3 })
 		.insert(RigidBody::Dynamic)
@@ -103,6 +103,10 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
 		})
+		.insert(Bounded {
+			size: Vec2::splat(2. * 20.),
+		})
+		.insert(Mob { health: 3 })
 		.insert(RigidBody::Dynamic)
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
