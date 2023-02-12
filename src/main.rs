@@ -291,45 +291,6 @@ fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
 		if ok { return target; }
 	};
 	panic!();
-
-	/*
-	if !f(0, 0) && f(0, 1) && !f(-1, 0) && f(1, 1) {
-		410 // lower left wall bottom
-	} else if f(0, 0) && !f(0, -1) && !f(-1, 0) && f(0, 1) && f(1, 0) {
-		359 // lower left wall middle
-	} else if f(0, 0) && !f(0, -2) && f(0, -1) && !f(-1, 0) && f(1, 0) {
-		308 // lower left wall top
-	} else if !f(0, 0) && f(0, 1) {
-		562 + v%4  // up wall bottom, at floor, 0..4 variants
-	} else if f(0, 0) && !f(0, -1) {
-		511 + v%4  // up wall middle, above floor, 0..4 variants
-	} else if f(0, 0) && f(0, -1) && !f(0, -2) {
-		460 + v%4  // up wall top, 0..4 variants
-	} else if f(0, 0) && !f(0, 1) {
-		613 + v%4  // bot wall, 0..4 variants
-	} else if f(0, 0) && !f(1, 0) && f(-1, 0) {
-		58 + 51*(v%6) // wall right, next to floor on left, 0..6 variants
-	} else if f(0, 0) && !f(-1, 0) && f(1, 0) {
-		53 + 51*(v%6) // wall left, next to floor on right, 0..6 variants
-	} else if f(0, 0) {
-		208  // generic
-	} else {
-		1775 + v%3 + 51*((v/3)%3) // empty
-	}
-	*/
-	// if f(0, 0) {
-	// 	if f(0, -1) {
-	// 		208
-	// 	} else {
-	// 		if !f(0, 1) {
-	// 			613
-	// 		} else {
-	// 			208
-	// 		}
-	// 	}
-	// } else {
-	// 	1777
-	// }
 }
 
 pub fn spawn_tile(
