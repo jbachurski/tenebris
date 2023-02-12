@@ -37,9 +37,14 @@ use tilesim::*;
 mod utils;
 use utils::*;
 
+#[derive(Component)]
+pub struct Despawn;
+
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 pub const FOG_RADIUS: u32 = 17;
+
+pub const DESPAWN_STAGE: &str = "DESPAWN";
 
 fn main() {
 	App::new()
@@ -103,9 +108,11 @@ fn main() {
 		.add_system(run_goo)
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
-		.add_system(update_camera) //.after(resolve_collisions))
+		.add_system(update_camera)
 		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
+		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
+		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.run();
 }
 
@@ -226,7 +233,7 @@ pub fn despawn_tiles(
 				|| tile_position.y > camera_tile_position.y.saturating_add(FOG_RADIUS)
 			{
 				simulator.grid.spawned_tiles.remove(&tile_position);
-				commands.entity(entity).despawn();
+				commands.entity(entity).insert(Despawn);
 			}
 		}
 	}
@@ -250,5 +257,11 @@ pub fn update_tiles(
 				},
 			);
 		}
+	}
+}
+
+pub fn despawn(mut commands: Commands, despawns: Query<Entity, With<Despawn>>) {
+	for entity in despawns.iter() {
+		commands.entity(entity).despawn();
 	}
 }
