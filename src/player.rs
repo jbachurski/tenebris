@@ -120,7 +120,7 @@ pub fn animate_player_sprite(
 		timer.tick(time.delta());
 		if timer.just_finished() {
 			let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
-			if (velocity.linvel.length() < 1e-5) {
+			if velocity.linvel.length() < 1e-5 {
 				sprite.index = 20
 			} else {
 				sprite.index = 20 + (i32::max(0, sprite.index as i32 - 19) as usize % 10);

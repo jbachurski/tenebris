@@ -1,7 +1,7 @@
 use bevy::{prelude::*, utils::*};
 use rand::*;
 
-use crate::{tiles::*, utils::*};
+use crate::{structures::*, tiles::*, utils::*};
 
 #[derive(Resource)]
 pub struct SimulatorTimer(pub Timer);
@@ -13,11 +13,12 @@ pub struct Simulator {
 	radii: (u32, u32),
 	weights: (u32, u32),
 	campfire_radius: u32,
-	reality_params: (u32, u32),
+	pub reality_params: (u32, u32),
 	despawn_prob: f32,
 	n_structures: u32,
 	structure_dist: u32,
 	structure_radius: u32,
+	boss_room_radius: u32,
 	pub grid: TileManager,
 }
 
@@ -33,6 +34,7 @@ impl Simulator {
 		n_structures: u32,
 		structure_dist: u32,
 		structure_radius: u32,
+		boss_room_radius: u32,
 	) -> Simulator {
 		Self {
 			width: width,
@@ -45,6 +47,7 @@ impl Simulator {
 			n_structures: n_structures,
 			structure_dist: structure_dist,
 			structure_radius: structure_radius,
+			boss_room_radius: boss_room_radius,
 			grid: TileManager::default(),
 		}
 	}
@@ -60,14 +63,19 @@ impl Simulator {
 		// Spawn structures
 		let structure_choices = (1usize..self.width as usize)
 			.flat_map(|i| (1usize..self.width as usize).map(move |j| (i, j)))
-			.filter(|(i, j)| self.grid.is_wall[*i][*j])
+			.filter(|(i, j)| {
+				!self.grid.is_wall[*i][*j]
+					&& Vec2::new(*i as f32, *j as f32).distance(self.world_center().as_vec2()) > self.reality_params.1 as f32
+			})
 			.map(|(i, j)| UVec2::new(i as u32, j as u32))
 			.collect();
 
-		self.grid.structures = HashSet::default();
-		self.grid
-			.structures
-			.extend(poisson_disk_sample(&structure_choices, self.structure_dist as f32, self.n_structures).iter());
+		self.grid.structures = HashMap::default();
+
+		for pos in poisson_disk_sample(&structure_choices, self.structure_dist as f32, self.n_structures).iter() {
+			self.grid.structures.insert(*pos, StructureType::Unspawned);
+		}
+		self.grid.structures.insert(self.world_center(), StructureType::SpawnTutorial);
 
 		for i in 0..self.width {
 			for j in 0..self.width {
@@ -76,7 +84,7 @@ impl Simulator {
 					.grid
 					.structures
 					.iter()
-					.any(|sv| sv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
+					.any(|(sv, _)| sv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
 				{
 					// Space near structures should be reserved
 					self.grid.is_wall[i as usize][j as usize] = false;
@@ -123,8 +131,17 @@ impl Simulator {
 		// Calculate distance from player
 		let dist = loc.as_vec2().distance(player_pos.as_vec2());
 		// Update available_cells
-		if dist < outerrad {
+		if dist < outerrad && !self.grid.reality_bubble.contains(&loc) {
 			self.grid.reality_bubble.insert(loc);
+			// If structure, assign it a random value
+			self.grid.structures.get_mut(&loc).map(|v| {
+				*v = match thread_rng().gen_range(0..=2) {
+					0 => StructureType::Remember,
+					1 => StructureType::BewareSpider,
+					2 => StructureType::Altar,
+					_ => panic!(),
+				};
+			});
 		}
 		// If loc between inner_rad and outer_rad
 		if innerrad <= dist && dist <= outerrad {
@@ -176,11 +193,11 @@ impl Simulator {
 		self.grid
 			.structures
 			.iter()
-			.any(|uv| uv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
+			.any(|(uv, _)| uv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
 	}
 
 	fn calc_new_cell(&self, loc: UVec2) -> bool {
-		let dist = loc.as_vec2().distance(UVec2::new(self.width / 2, self.width / 2).as_vec2());
+		let dist = loc.as_vec2().distance(self.world_center().as_vec2());
 		let (inner_bound, outer_bound) = self.radii;
 		if dist < inner_bound as f32 {
 			return false;
@@ -192,6 +209,10 @@ impl Simulator {
 		// Else, return something random weighted 0, 1
 		let (e, w) = self.weights;
 		return rand::thread_rng().gen_ratio(w, e + w);
+	}
+
+	fn world_center(&self) -> UVec2 {
+		return UVec2::new(self.width / 2, self.width / 2);
 	}
 
 	pub fn place_campfire(&mut self, loc: UVec2) {

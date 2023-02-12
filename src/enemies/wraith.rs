@@ -6,39 +6,43 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{mob::*, player::*};
 
+use super::Enemy;
+
 #[derive(Component)]
 pub struct EnemyWraith {
 	angle: f32,
 	angle_vel: f32,
 }
 
-pub fn spawn_wraiths(
+pub fn spawn_wraith(
 	commands: &mut Commands,
 	meshes: &mut ResMut<Assets<Mesh>>,
 	materials: &mut ResMut<Assets<ColorMaterial>>,
+	position: Vec3,
 ) {
-	commands
-		.spawn(MaterialMesh2dBundle {
+	commands.spawn((
+		MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::ORANGE_RED)),
-			transform: Transform::from_translation(Vec3::new(3200. + 200.0, 3200. + -50.0, 1.0)),
+			transform: Transform::from_translation(position),
 			..default()
-		})
-		.insert(EnemyWraith {
+		},
+		EnemyWraith {
 			angle: 0.0,
 			angle_vel: 0.0,
-		})
-		.insert(Mob { health: 3 })
-		.insert(Bounded {
+		},
+		Mob { health: 3 },
+		Bounded {
 			size: Vec2::splat(2. * 20.),
-		})
-		.insert(Mob { health: 3 })
-		.insert(RigidBody::Dynamic)
-		.insert(LockedAxes::ROTATION_LOCKED)
-		.insert(Velocity {
+		},
+		RigidBody::Dynamic,
+		LockedAxes::ROTATION_LOCKED,
+		Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
-		});
+		},
+		Enemy,
+	));
 }
 
 pub fn run_wraith(

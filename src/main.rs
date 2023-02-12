@@ -38,6 +38,8 @@ use tilesim::*;
 mod utils;
 use utils::*;
 
+mod structures;
+
 #[derive(Component)]
 pub struct Despawn;
 
@@ -90,10 +92,15 @@ fn main() {
 			10,
 			20,
 			5,
+			15,
 		))
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
+		.insert_resource(EnemySpawner {
+			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+			max_enemy_count: 8,
+		})
 		.add_plugin(MinimapPlugin)
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
@@ -106,7 +113,7 @@ fn main() {
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
-		.add_system(run_skeleton)
+		.add_system(run_ranger)
 		.add_system(run_wraith)
 		.add_system(run_goo)
 		.add_system(run_boss)
@@ -115,11 +122,12 @@ fn main() {
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(simulator_step)
-		.add_startup_system(spawn_enemies)
+		.add_system(spawn_random_enemy)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
 		.add_system(mob_face_movement)
+		.add_system(despawn_far_enemies)
 		.run();
 }
 
@@ -176,7 +184,7 @@ pub fn simulator_step(
 	let player_trans = player.single().translation.truncate();
 	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
-	if (keyboard_input.just_pressed(KeyCode::E)) {
+	if keyboard_input.just_pressed(KeyCode::E) {
 		if simulator.grid.campfires.contains(&player_pos) {
 			simulator.remove_campfire(player_pos);
 			for (e, t) in structures.iter() {
