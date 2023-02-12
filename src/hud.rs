@@ -2,7 +2,7 @@ use bevy::{prelude::*, render::render_resource::TextureFormat};
 use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
-	player::{Player, MAX_HEALTH},
+	player::{CrystalCooldownTimer, FireboltCooldownTimer, MineCooldownTimer, Player, PlayerWeaponSelect, MAX_HEALTH},
 	tiles::position_to_tile_position,
 	tilesim::Simulator,
 	utils::{DEBUG_OMNISCIENCE, MAP_RADIUS, MINIMAP_SIZE},
@@ -16,6 +16,7 @@ impl Plugin for MinimapPlugin {
 			.add_startup_system(setup_total_minimap)
 			.add_system(update_total_minimap)
 			.add_system(update_player_health_indicators)
+			.add_system(update_spell_cooldown_overlays)
 			.add_system(update_spell_indicator);
 	}
 }
@@ -32,6 +33,9 @@ struct PlayerHealthIndicator {
 
 #[derive(Component)]
 struct SpellIndicator;
+
+#[derive(Component)]
+struct SpellCooldownOverlay(PlayerWeaponSelect);
 
 fn setup_total_minimap(
 	asset_server: Res<AssetServer>,
@@ -131,7 +135,7 @@ fn setup_total_minimap(
 				size: Size::new(Val::Px(64.), Val::Px(64.)),
 				position_type: PositionType::Absolute,
 				position: UiRect {
-					right: Val::Px(10.0 + (64. + 10.) * (i as f32)),
+					right: Val::Px(10.0 + (64. + 10.) * ((2 - i) as f32)),
 					bottom: Val::Px(10.0),
 					..default()
 				},
@@ -141,6 +145,34 @@ fn setup_total_minimap(
 			z_index: ZIndex::Local(1),
 			..default()
 		});
+	}
+
+	// Make spell cooldown icons on the bottom right
+	for (i, spell) in [
+		PlayerWeaponSelect::Firebolt,
+		PlayerWeaponSelect::Crystals,
+		PlayerWeaponSelect::Mine,
+	]
+	.iter()
+	.enumerate()
+	{
+		commands
+			.spawn(NodeBundle {
+				style: Style {
+					size: Size::new(Val::Px(64.), Val::Px(0.)),
+					position_type: PositionType::Absolute,
+					position: UiRect {
+						right: Val::Px(10.0 + (64. + 10.) * ((2 - i) as f32)),
+						bottom: Val::Px(10.0),
+						..default()
+					},
+					..default()
+				},
+				background_color: BackgroundColor(Color::rgba_u8(255, 255, 255, 192)),
+				z_index: ZIndex::Local(2),
+				..default()
+			})
+			.insert(SpellCooldownOverlay(spell.clone()));
 	}
 }
 
@@ -173,6 +205,46 @@ fn update_spell_indicator(players: Query<&Player>, mut indicators: Query<&mut St
 
 	for mut style in indicators.iter_mut() {
 		style.position.right = Val::Px(8.0 + (2 - spell_index) as f32 * (64. + 10.));
+	}
+}
+
+fn update_spell_cooldown_overlays(
+	firebolt_timers: Query<&FireboltCooldownTimer>,
+	storm_timers: Query<&CrystalCooldownTimer>,
+	explosion_timers: Query<&MineCooldownTimer>,
+	mut overlays: Query<(&mut Style, &SpellCooldownOverlay)>,
+) {
+	let mut firebolt_ratio = 0.0;
+	let mut storm_ratio = 0.0;
+	let mut explosion_ratio = 0.0;
+
+	for FireboltCooldownTimer(timer) in firebolt_timers.iter() {
+		if !timer.finished() {
+			firebolt_ratio = 1.0 - (timer.elapsed().as_secs_f32() / timer.duration().as_secs_f32());
+		}
+	}
+
+	for CrystalCooldownTimer(timer) in storm_timers.iter() {
+		if !timer.finished() {
+			storm_ratio = 1.0 - (timer.elapsed().as_secs_f32() / timer.duration().as_secs_f32());
+		}
+	}
+
+	for MineCooldownTimer(timer) in explosion_timers.iter() {
+		if !timer.finished() {
+			explosion_ratio = 1.0 - (timer.elapsed().as_secs_f32() / timer.duration().as_secs_f32());
+		}
+	}
+
+	for (mut style, overlay) in overlays.iter_mut() {
+		use PlayerWeaponSelect::*;
+		style.size.height = Val::Px(
+			64. * match overlay.0 {
+				Firebolt => firebolt_ratio,
+				Crystals => storm_ratio,
+				Mine => explosion_ratio,
+			},
+		);
 	}
 }
 
