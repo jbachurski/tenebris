@@ -37,13 +37,13 @@ pub fn spawn_ranger(
 	commands: &mut Commands,
 	meshes: &mut ResMut<Assets<Mesh>>,
 	materials: &mut ResMut<Assets<ColorMaterial>>,
-	position: Vec2,
+	position: Vec3,
 ) {
 	commands.spawn((
 		MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(position.extend(1.0)),
+			transform: Transform::from_translation(position),
 			..default()
 		},
 		EnemyRanger,

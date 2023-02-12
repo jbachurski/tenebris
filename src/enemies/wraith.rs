@@ -16,13 +16,13 @@ pub fn spawn_wraith(
 	commands: &mut Commands,
 	meshes: &mut ResMut<Assets<Mesh>>,
 	materials: &mut ResMut<Assets<ColorMaterial>>,
-	position: Vec2,
+	position: Vec3,
 ) {
 	commands.spawn((
 		MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::ORANGE_RED)),
-			transform: Transform::from_translation(position.extend(1.0)),
+			transform: Transform::from_translation(position),
 			..default()
 		},
 		EnemyWraith {
