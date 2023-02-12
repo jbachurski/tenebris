@@ -100,12 +100,12 @@ pub fn spawn_tiles(
 pub fn despawn_tiles(
 	mut commands: Commands,
 	tiles: Query<(Entity, &Transform), With<Tile>>,
-	mut back_tiles: Query<Entity, With<BackTile>>,
+	mut back_tiles: Query<(Entity, &Transform), With<BackTile>>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut simulator: ResMut<Simulator>,
 ) {
 	for camera in cameras.iter() {
-		for (entity, transform) in tiles.iter() {
+		for (entity, transform) in tiles.iter().chain(back_tiles.iter()) {
 			let position = transform.translation.xy();
 			let camera_tile_position = position_to_tile_position(&camera.translation.xy());
 			let tile_position = position_to_tile_position(&position);
@@ -118,9 +118,6 @@ pub fn despawn_tiles(
 				commands.entity(entity).despawn();
 			}
 		}
-	}
-	for entity in back_tiles.iter() {
-		commands.entity(entity).despawn();
 	}
 }
 
