@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{mob::*, player::*};
+use crate::{mob::*, player::*, Despawn};
 
 #[derive(Component, Deref, DerefMut)]
 pub struct ProjectileTimer(Timer);
@@ -77,7 +77,7 @@ pub fn despawn_old_projectiles(mut commands: Commands, time: Res<Time>, mut quer
 	for (entity, mut timer) in query.iter_mut() {
 		timer.tick(time.delta());
 		if timer.finished() {
-			commands.entity(entity).despawn();
+			commands.entity(entity).insert(Despawn);
 		}
 	}
 }

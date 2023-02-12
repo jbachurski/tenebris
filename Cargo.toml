@@ -11,6 +11,7 @@ bevy-inspector-egui = "0.17.0"
 bevy_ecs_tilemap = { version = "0.9.0", features = ["atlas"] }
 bevy_prototype_debug_lines = "0.9"
 bevy_rapier2d = "0.20.0"
+image = "0.24.5"
 rand = "0.8.5"
 
 # Enable a small amount of optimization in debug mode
