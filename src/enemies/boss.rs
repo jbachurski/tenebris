@@ -1,6 +1,6 @@
 use std::f32::consts::TAU;
 
-use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
@@ -24,12 +24,11 @@ const BOSS_CHARGE_TO_CIRCLE: f32 = 3.0;
 const CIRCLE_ATTACK_TICK: f32 = 0.5;
 const CIRCLE_ATTACK_TICKS: u32 = 20;
 
-pub fn spawn_boss(mut commands: &mut Commands, asset_server: &Res<AssetServer>) {
+pub fn spawn_boss(mut commands: &mut Commands, asset_server: &Res<AssetServer>, pos: Vec2) {
 	commands
 		.spawn(SpriteBundle {
 			texture: asset_server.load("spider.png"),
-			transform: Transform::from_translation(Vec3::new(3200. + 500.0, 3200. + 500.0, 2.0))
-				.with_scale(Vec3::new(3.0, 3.0, 1.0)),
+			transform: Transform::from_translation(pos.extend(2.0)).with_scale(Vec3::new(3.0, 3.0, 1.0)),
 			..default()
 		})
 		.insert(EnemyBoss {
