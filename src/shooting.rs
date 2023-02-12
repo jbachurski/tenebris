@@ -9,10 +9,21 @@ pub struct Projectile {
 }
 
 #[derive(Component)]
-pub struct Fireball;
+pub struct Firebolt;
+
+pub const FIREBALL_LIFE: f32 = 1.0;
+pub const CRYSTAL_LIFE: f32 = 0.6;
+pub const MINE_LIFE: f32 = 7.0;
+
+pub const FIREBALL_COOLDOWN: f32 = 0.6;
+pub const CRYSTAL_COOLDOWN: f32 = 0.17;
+pub const MINE_COOLDOWN: f32 = 2.0;
 
 #[derive(Component)]
-pub struct Crystals;
+pub struct Crystal {
+	basevel: Vec2,
+	heading: Vec2,
+}
 
 #[derive(Component)]
 pub struct Mine;
@@ -26,31 +37,54 @@ pub fn player_shoot(
 	asset_server: Res<AssetServer>,
 	windows: Res<Windows>,
 	mouse_button_input: Res<Input<MouseButton>>,
-	mut player_query: Query<(&mut ShootingTimer, &Transform, &Velocity, &Player)>,
+	mut player_query: Query<(
+		&mut FireboltCooldownTimer,
+		&mut CrystalCooldownTimer,
+		&mut MineCooldownTimer,
+		&Transform,
+		&Velocity,
+		&Player,
+	)>,
 	camera_query: Query<(&Camera, &GlobalTransform)>,
 ) {
 	let (camera, camera_transform) = camera_query.single();
-	let (mut shooting_timer, player_transform, player_velocity, player) = player_query.single_mut();
+	let (mut firebolt_timer, mut crystal_timer, mut mine_timer, player_transform, player_velocity, player) =
+		player_query.single_mut();
 
-	// Tick the timer only if shooting is on cooldown, or the player is trying to shoot
-	if !shooting_timer.just_finished() {
-		shooting_timer.tick(time.delta());
-	} else {
-		let window = windows.get_primary().unwrap();
-		if let Some(cursor_position) = window.cursor_position() {
-			if mouse_button_input.pressed(MouseButton::Left) {
-				shooting_timer.tick(time.delta());
+	if match player.select {
+		PlayerWeaponSelect::Firebolt => {
+			firebolt_timer.tick(time.delta());
+			!firebolt_timer.finished()
+		},
+		PlayerWeaponSelect::Crystals => {
+			crystal_timer.tick(time.delta());
+			!crystal_timer.finished()
+		},
+		PlayerWeaponSelect::Mine => {
+			mine_timer.tick(time.delta());
+			!mine_timer.finished()
+		},
+	} {
+		return;
+	};
 
-				let cursor_position = get_cursor_world_pos(camera, camera_transform, window, cursor_position);
-				cast_spell(
-					commands,
-					player_transform,
-					player_velocity,
-					&player.select,
-					asset_server,
-					cursor_position,
-				)
-			}
+	let window = windows.get_primary().unwrap();
+	if let Some(cursor_position) = window.cursor_position() {
+		if mouse_button_input.pressed(MouseButton::Left) {
+			let cursor_position = get_cursor_world_pos(camera, camera_transform, window, cursor_position);
+			cast_spell(
+				commands,
+				player_transform,
+				player_velocity,
+				&player,
+				asset_server,
+				cursor_position,
+			);
+			match player.select {
+				PlayerWeaponSelect::Firebolt => firebolt_timer.reset(),
+				PlayerWeaponSelect::Crystals => crystal_timer.reset(),
+				PlayerWeaponSelect::Mine => mine_timer.reset(),
+			};
 		}
 	}
 }
@@ -74,12 +108,13 @@ fn get_cursor_world_pos(camera: &Camera, camera_transform: &GlobalTransform, win
 fn cast_spell(
 	mut commands: Commands,
 	player_transform: &Transform,
-	_player_velocity: &Velocity,
-	select: &PlayerWeaponSelect,
+	player_velocity: &Velocity,
+	player: &Player,
 	asset_server: Res<AssetServer>,
 	cursor_position: Vec2,
 ) {
-	match select {
+	let heading = (cursor_position - player_transform.translation.truncate()).normalize();
+	match player.select {
 		PlayerWeaponSelect::Firebolt => {
 			commands.spawn((
 				SpriteBundle {
@@ -88,19 +123,56 @@ fn cast_spell(
 					..default()
 				},
 				Velocity {
-					linvel: (cursor_position - player_transform.translation.truncate()).normalize() * 10.0 * 60.,
+					linvel: heading * 7.0 * 60.,
 					angvel: 0.0,
 				},
-				Projectile { damage: 1 },
-				ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+				Projectile { damage: 5 },
+				ProjectileTimer(Timer::from_seconds(FIREBALL_LIFE, TimerMode::Once)),
 				Bounded { size: Vec2::splat(16.0) },
 				RigidBody::Dynamic,
 				LockedAxes::ROTATION_LOCKED,
+				Firebolt,
 			));
 		},
-		PlayerWeaponSelect::Crystals => {},
+		PlayerWeaponSelect::Crystals => {
+			commands.spawn((
+				SpriteBundle {
+					texture: asset_server.load("fire_bolt.png"),
+					transform: *player_transform,
+					..default()
+				},
+				Velocity {
+					linvel: player_velocity.linvel,
+					angvel: 0.0,
+				},
+				Projectile { damage: 1 },
+				ProjectileTimer(Timer::from_seconds(CRYSTAL_LIFE, TimerMode::Once)),
+				Bounded { size: Vec2::splat(10.0) },
+				RigidBody::Dynamic,
+				LockedAxes::ROTATION_LOCKED,
+				Crystal {
+					basevel: player_velocity.linvel,
+					heading,
+				},
+			));
+		},
 		PlayerWeaponSelect::Mine => {},
 	};
+}
+
+pub fn update_crystals_velocity(
+	time: Res<Time>,
+	mut players: Query<&Player>,
+	mut crystals: Query<(&mut ProjectileTimer, &mut Velocity, &Crystal)>,
+) {
+	let player = players.single();
+	for (mut timer, mut velocity, crystal) in crystals.iter_mut() {
+		timer.tick(time.delta());
+		let t = timer.remaining().as_secs_f32();
+		if t > 0.0 {
+			velocity.linvel = crystal.basevel + crystal.heading * (t / CRYSTAL_LIFE) * 12.0 * 60.0
+		}
+	}
 }
 
 pub fn despawn_old_projectiles(mut commands: Commands, time: Res<Time>, mut query: Query<(Entity, &mut ProjectileTimer)>) {

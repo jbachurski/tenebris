@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::mob::*;
+use crate::{mob::*, shooting::*};
 
 pub enum PlayerWeaponSelect {
 	Firebolt,
@@ -37,7 +37,13 @@ pub fn tick_down_player_invincibility(time: Res<Time>, mut players: Query<(&mut 
 pub struct AnimationTimer(Timer);
 
 #[derive(Component, Deref, DerefMut)]
-pub struct ShootingTimer(Timer);
+pub struct FireboltCooldownTimer(Timer);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct CrystalCooldownTimer(Timer);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct MineCooldownTimer(Timer);
 
 #[derive(Default, Resource)]
 pub struct MovementPrecedence {
@@ -181,7 +187,9 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			size: Vec2::new(32., 32.),
 		},
 		CollidesWithWalls,
-		ShootingTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
+		FireboltCooldownTimer(Timer::from_seconds(FIREBALL_COOLDOWN, TimerMode::Once)),
+		CrystalCooldownTimer(Timer::from_seconds(CRYSTAL_COOLDOWN, TimerMode::Once)),
+		MineCooldownTimer(Timer::from_seconds(MINE_COOLDOWN, TimerMode::Once)),
 		RigidBody::Dynamic,
 		Collider::cuboid(12.0, 12.0),
 		Ccd::enabled(),

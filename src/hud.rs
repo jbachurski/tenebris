@@ -3,6 +3,7 @@ use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
 	player::{Player, MAX_HEALTH},
+	tiles::position_to_tile_position,
 	tilesim::Simulator,
 	utils::{DEBUG_OMNISCIENCE, MAP_RADIUS, MINIMAP_SIZE},
 };
@@ -175,12 +176,23 @@ fn update_spell_indicator(players: Query<&Player>, mut indicators: Query<&mut St
 	}
 }
 
-fn update_total_minimap(total_minimap: Res<TotalMinimap>, simulator: Res<Simulator>, mut assets: ResMut<Assets<Image>>) {
+fn update_total_minimap(
+	total_minimap: Res<TotalMinimap>,
+	simulator: Res<Simulator>,
+	mut assets: ResMut<Assets<Image>>,
+	player_query: Query<&Transform, With<Player>>,
+) {
 	if let Some(image) = assets.get_mut(&total_minimap.handle) {
+		let player_position = player_query.single().translation.truncate();
 		let mut image_buffer = ImageBuffer::new(MAP_RADIUS * 2, MAP_RADIUS * 2);
 		for (x, y, p) in image_buffer.enumerate_pixels_mut() {
 			if DEBUG_OMNISCIENCE || simulator.grid.reality_bubble.contains(&UVec2::new(x, MAP_RADIUS * 2 - y - 1)) {
-				*p = get_minimap_color_but_better(&simulator, x, MAP_RADIUS * 2 - y - 1);
+				*p = get_minimap_color(
+					&simulator,
+					position_to_tile_position(&player_position),
+					x,
+					MAP_RADIUS * 2 - y - 1,
+				);
 			} else {
 				*p = Rgba([102, 102, 255, 25]);
 			}
@@ -189,8 +201,13 @@ fn update_total_minimap(total_minimap: Res<TotalMinimap>, simulator: Res<Simulat
 	}
 }
 
-fn get_minimap_color_but_better(simulator: &Simulator, i: u32, j: u32) -> Rgba<u8> {
-	if simulator.grid.is_wall[i as usize][j as usize] {
+fn get_minimap_color(simulator: &Simulator, player_pos: UVec2, i: u32, j: u32) -> Rgba<u8> {
+	let pos = UVec2::new(i, j);
+	if pos.as_vec2().distance(player_pos.as_vec2()) < 2. {
+		Rgba([255, 255, 255, 255])
+	} else if simulator.grid.campfires.contains(&pos) {
+		Rgba([102, 255, 102, 127])
+	} else if simulator.grid.is_wall[i as usize][j as usize] {
 		Rgba([102, 102, 255, 51])
 	} else {
 		Rgba([102, 102, 255, 127])

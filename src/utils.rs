@@ -4,7 +4,7 @@ use rand::*;
 pub const MINIMAP_SIZE: f32 = 200.0;
 pub const MAP_RADIUS: u32 = 100;
 pub const MAP_RADIUS_USIZE: usize = MAP_RADIUS as usize;
-pub const DEBUG_OMNISCIENCE: bool = true;
+pub const DEBUG_OMNISCIENCE: bool = false;
 
 pub fn _todo_remove_norm(i: f32, j: f32) -> f32 {
 	(i.powf(2.0) + j.powf(2.0)).sqrt()
