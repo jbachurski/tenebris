@@ -58,7 +58,6 @@ impl Simulator {
 		}
 
 		// Spawn structures
-
 		let structure_choices = (1usize..self.width as usize)
 			.flat_map(|i| (1usize..self.width as usize).map(move |j| (i, j)))
 			.filter(|(i, j)| self.grid.is_wall[*i][*j])
@@ -182,16 +181,20 @@ impl Simulator {
 		return rand::thread_rng().gen_ratio(w, e + w);
 	}
 
-	fn toggle_campfire(&mut self, i: u32, j: u32) {
-		// Pretty straightforward
+	fn toggle_campfire(&mut self, loc: UVec2) {
+		if self.grid.campfires.contains(&loc) {
+			self.remove_campfire(loc);
+		} else {
+			self.place_campfire(loc);
+		}
 	}
 
-	fn place_campfire(&mut self, i: u32, j: u32) {
-		// Ditto
+	fn place_campfire(&mut self, loc: UVec2) {
+		self.grid.campfires.insert(loc);
 	}
 
-	fn remove_campfire(&mut self, i: u32, j: u32) {
-		// Ditto
+	fn remove_campfire(&mut self, loc: UVec2) {
+		self.grid.campfires.remove(&loc);
 	}
 
 	fn debug_output(&self) {
