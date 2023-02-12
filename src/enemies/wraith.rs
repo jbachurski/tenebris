@@ -4,9 +4,8 @@ use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{mob::*, player::*};
-
 use super::Enemy;
+use crate::{mob::*, player::*};
 
 #[derive(Component)]
 pub struct EnemyWraith {

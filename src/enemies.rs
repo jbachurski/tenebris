@@ -10,12 +10,13 @@ pub mod boss;
 use boss::*;
 
 pub mod goo;
+use std::f32::consts::TAU;
+
+use bevy::prelude::*;
 use goo::*;
+use rand::prelude::*;
 
 use crate::{player::*, tiles::*, tilesim::*};
-use bevy::prelude::*;
-use rand::prelude::*;
-use std::f32::consts::TAU;
 
 #[derive(Resource)]
 pub struct EnemySpawner {
