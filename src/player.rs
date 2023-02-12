@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{mob::*, shooting::*};
 
+#[derive(Clone)]
 pub enum PlayerWeaponSelect {
 	Firebolt,
 	Crystals,
@@ -37,13 +38,13 @@ pub fn tick_down_player_invincibility(time: Res<Time>, mut players: Query<(&mut 
 pub struct AnimationTimer(Timer);
 
 #[derive(Component, Deref, DerefMut)]
-pub struct FireboltCooldownTimer(Timer);
+pub struct FireboltCooldownTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut)]
-pub struct CrystalCooldownTimer(Timer);
+pub struct CrystalCooldownTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut)]
-pub struct MineCooldownTimer(Timer);
+pub struct MineCooldownTimer(pub Timer);
 
 #[derive(Default, Resource)]
 pub struct MovementPrecedence {
