@@ -5,6 +5,7 @@ use bevy::{
 	math::Vec3Swizzles,
 	prelude::*,
 	render::render_resource::*,
+	time::FixedTimestep,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
@@ -40,6 +41,8 @@ use utils::*;
 pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 
 pub const FOG_RADIUS: u32 = 17;
+
+const TIME_STEP: f32 = 1.0 / 60.0;
 
 fn main() {
 	App::new()
@@ -103,7 +106,7 @@ fn main() {
 		.add_system(run_goo)
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
-		.add_system(update_camera) //.after(resolve_collisions))
+		.add_system(update_camera) //.after(move_by_velocity))
 		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
 		.run();
@@ -418,7 +421,7 @@ pub fn update_tiles(
 	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position));
+			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position));
 		}
 	}
 }
