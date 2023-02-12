@@ -2,7 +2,7 @@
 
 ## Description
 
-Fight your way out of a maze you (and the game) can't remember. You can only remember the tiles that you can see around you; if you move away from an area and move back, you may notice that the passageways have.
+Fight your way out of a maze you (and the game) can't remember. You can only remember the tiles that you can see around you; if you move away from an area and move back, you may notice that the passageways have changed.
 
 Place down torches (by pressing E) to remember a small area around the torch. Watch out though, as the passageway leading to the torch could also be forgotten.
 
