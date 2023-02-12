@@ -129,6 +129,14 @@ fn setup(
 	});
 
 	// Create a texture atlas for cave.
+	atlases.cave_atlas_simple = texture_atlases.add(TextureAtlas::from_grid(
+		asset_server.load("cave/atlas_cave_simple.png"),
+		Vec2::new(32., 32.),
+		6,
+		4,
+		None,
+		None,
+	));
 	atlases.cave_atlas = texture_atlases.add(TextureAtlas::from_grid(
 		asset_server.load("cave/atlas_cave.png"),
 		Vec2::new(32., 32.),
@@ -143,6 +151,183 @@ fn setup(
 fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
+fn tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
+}
+
+#[rustfmt::skip]
+fn tile_atlas_index(simulator: &Simulator, tile_position: UVec2) -> usize {
+	let f = |dx: i32, dy: i32| -> bool {
+		let xx = ((tile_position.x as i32) + dx) as usize;
+		let yy = ((tile_position.y as i32) + dy) as usize;
+		simulator
+			.grid
+			.is_wall
+			.get(xx)
+			.map_or(false, |row| *row.get(yy).unwrap_or(&false))
+	};
+	let v = ((31*tile_position.x + 37*tile_position.y + 1337) ^ (tile_position.x*7 + tile_position.y*11)) as usize;
+
+	const X: i32 = 1; // wall
+	const T: i32 = 0; // any
+	const O: i32 = -1; // open
+
+	// pattern center at (1, 1)
+	let patterns = [
+		(
+			[ // up
+				[T, O, T],
+				[X, X, X],
+				[X, X, X],
+				[X, X, X]
+			],
+			613 + v%4
+		),
+		(
+			[ // up left
+				[O, O, T],
+				[O, X, X],
+				[T, X, T],
+				[T, T, T]
+			],
+			2
+		),
+		(
+			[ // up right
+				[T, O, O],
+				[X, X, O],
+				[T, X, T],
+				[T, T, T]
+			],
+			7
+		),
+		(
+			[ // right
+				[T, X, T],
+				[X, X, O],
+				[T, X, T],
+				[T, T, T]
+			],
+			58 + 51 * (v%6)
+		),
+		(
+			[ // left
+				[T, X, T],
+				[O, X, X],
+				[T, X, T],
+				[T, T, T]
+			],
+			53 + 51 * (v%6)
+		),
+		(
+			[ // down low
+				[T, X, T],
+				[T, O, T],
+				[T, T, T],
+				[T, T, T]
+			],
+			562 + v%4
+		),
+		(
+			[ // down mid
+				[T, X, T],
+				[T, X, T],
+				[T, O, T],
+				[T, T, T]
+			],
+			511 + v%4
+		),
+		(
+			[ // down high
+				[T, X, T],
+				[T, X, T],
+				[T, X, T],
+				[T, O, T]
+			],
+			460 + v%4
+		),
+		(
+			[ // mid
+				[X, X, X],
+				[X, X, X],
+				[X, X, X],
+				[T, T, T]
+			],
+			54 + v%4 + 51*((v/4)%5)
+		),
+		(
+			[ // generic open
+				[T, T, T],
+				[T, O, T],
+				[T, T, T],
+				[T, T, T]
+			],
+			1775 + v%3 + 51*((v/3)%3)
+		),
+		(
+			[ // generic wall
+				[T, T, T],
+				[T, X, T],
+				[T, T, T],
+				[T, T, T]
+			],
+			208
+		)
+	];
+
+	for (pattern, target) in patterns {
+		let mut ok = true;
+		for (dy, row) in (-1..=2).zip(pattern) {
+			for (dx, a) in (-1..=1).zip(row) {
+				if !((f(dx, -dy) && a >= 0) || (!f(dx, -dy) && a <= 0)) {
+					ok = false;
+					break;
+				}
+			}
+		}
+		if ok { return target; }
+	};
+	panic!();
+
+	/*
+	if !f(0, 0) && f(0, 1) && !f(-1, 0) && f(1, 1) {
+		410 // lower left wall bottom
+	} else if f(0, 0) && !f(0, -1) && !f(-1, 0) && f(0, 1) && f(1, 0) {
+		359 // lower left wall middle
+	} else if f(0, 0) && !f(0, -2) && f(0, -1) && !f(-1, 0) && f(1, 0) {
+		308 // lower left wall top
+	} else if !f(0, 0) && f(0, 1) {
+		562 + v%4  // up wall bottom, at floor, 0..4 variants
+	} else if f(0, 0) && !f(0, -1) {
+		511 + v%4  // up wall middle, above floor, 0..4 variants
+	} else if f(0, 0) && f(0, -1) && !f(0, -2) {
+		460 + v%4  // up wall top, 0..4 variants
+	} else if f(0, 0) && !f(0, 1) {
+		613 + v%4  // bot wall, 0..4 variants
+	} else if f(0, 0) && !f(1, 0) && f(-1, 0) {
+		58 + 51*(v%6) // wall right, next to floor on left, 0..6 variants
+	} else if f(0, 0) && !f(-1, 0) && f(1, 0) {
+		53 + 51*(v%6) // wall left, next to floor on right, 0..6 variants
+	} else if f(0, 0) {
+		208  // generic
+	} else {
+		1775 + v%3 + 51*((v/3)%3) // empty
+	}
+	*/
+	// if f(0, 0) {
+	// 	if f(0, -1) {
+	// 		208
+	// 	} else {
+	// 		if !f(0, 1) {
+	// 			613
+	// 		} else {
+	// 			208
+	// 		}
+	// 	}
+	// } else {
+	// 	1777
+	// }
+}
 
 pub fn spawn_tile(
 	commands: &mut Commands,
@@ -154,19 +339,12 @@ pub fn spawn_tile(
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
-			sprite: TextureAtlasSprite::new(
-				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
-					0
-				} else {
-					1460
-				},
-			),
+			sprite: TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position)),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
 		.insert(RigidBody::Fixed)
 		.insert(Velocity::default())
-		.insert(Collider::cuboid(16.0, 16.0))
 		.insert(Sensor)
 		.insert(Tile);
 }
@@ -240,15 +418,7 @@ pub fn update_tiles(
 	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(
-				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
-					commands.entity(entity).remove::<Sensor>();
-					0
-				} else {
-					commands.entity(entity).insert(Sensor);
-					1460
-				},
-			);
+			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position));
 		}
 	}
 }
