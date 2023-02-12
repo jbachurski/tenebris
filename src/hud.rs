@@ -53,10 +53,10 @@ fn setup_total_minimap(
 		..default()
 	});
 
+	// Make hearts on the top-left.
 	let heart_handle = asset_server.load("heart.png");
 
 	for i in 0..5 {
-		// Make three hearts on the side.
 		commands
 			.spawn(ImageBundle {
 				style: Style {
@@ -77,6 +77,74 @@ fn setup_total_minimap(
 				health_threshold: (MAX_HEALTH / 5) * (1 + i),
 			});
 	}
+
+	// Make gem on the bottom-left
+	let gem_handle = asset_server.load("gem/Gems.png");
+
+	commands.spawn(ImageBundle {
+		style: Style {
+			size: Size::new(Val::Px(32.), Val::Px(32.)),
+			position_type: PositionType::Absolute,
+			position: UiRect {
+				left: Val::Px(10.0),
+				bottom: Val::Px(10.0),
+				..default()
+			},
+			..default()
+		},
+		image: UiImage(gem_handle.clone()),
+		..default()
+	});
+
+	// Make spell icons on the bottom-right
+	let fireball_handle = asset_server.load("painterly-spell-icons/fireball-red-1.png");
+	let explosion_handle = asset_server.load("painterly-spell-icons/explosion-orange-2.png");
+	let storm_handle = asset_server.load("painterly-spell-icons/ice-sky-3.png");
+
+	commands.spawn(ImageBundle {
+		style: Style {
+			size: Size::new(Val::Px(64.), Val::Px(64.)),
+			position_type: PositionType::Absolute,
+			position: UiRect {
+				right: Val::Px(10.0),
+				bottom: Val::Px(10.0),
+				..default()
+			},
+			..default()
+		},
+		image: UiImage(fireball_handle.clone()),
+		..default()
+	});
+
+	commands.spawn(ImageBundle {
+		style: Style {
+			size: Size::new(Val::Px(64.), Val::Px(64.)),
+			position_type: PositionType::Absolute,
+			position: UiRect {
+				right: Val::Px(10.0 + 64. + 10.),
+				bottom: Val::Px(10.0),
+				..default()
+			},
+			..default()
+		},
+		image: UiImage(explosion_handle.clone()),
+		..default()
+	});
+
+	commands.spawn(ImageBundle {
+		style: Style {
+			size: Size::new(Val::Px(64.), Val::Px(64.)),
+			position_type: PositionType::Absolute,
+			position: UiRect {
+				right: Val::Px(10.0 + (64. + 10.) * 2.),
+				bottom: Val::Px(10.0),
+				..default()
+			},
+			..default()
+		},
+		image: UiImage(storm_handle.clone()),
+		..default()
+	});
 }
 
 fn update_player_health_indicators(players: Query<&Player>, mut indicators: Query<(&mut Visibility, &PlayerHealthIndicator)>) {

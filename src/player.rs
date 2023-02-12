@@ -9,6 +9,7 @@ pub const MAX_HEALTH: i32 = 20;
 pub struct Player {
 	pub health: i32,
 	pub invincibility_seconds: f32,
+	pub gem_count: i32,
 }
 
 impl Player {
@@ -140,6 +141,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		Player {
 			health: MAX_HEALTH,
 			invincibility_seconds: 2.0,
+			gem_count: 0,
 		},
 		Velocity::default(),
 		Acceleration {
