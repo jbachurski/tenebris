@@ -14,7 +14,8 @@ impl Plugin for MinimapPlugin {
 		app.init_resource::<TotalMinimap>()
 			.add_startup_system(setup_total_minimap)
 			.add_system(update_total_minimap)
-			.add_system(update_player_health_indicators);
+			.add_system(update_player_health_indicators)
+			.add_system(update_spell_indicator);
 	}
 }
 
@@ -27,6 +28,9 @@ struct TotalMinimap {
 struct PlayerHealthIndicator {
 	health_threshold: i32,
 }
+
+#[derive(Component)]
+struct SpellIndicator;
 
 fn setup_total_minimap(
 	asset_server: Res<AssetServer>,
@@ -96,55 +100,47 @@ fn setup_total_minimap(
 		..default()
 	});
 
+	// Add current spell indicator on the bottom-right
+	commands
+		.spawn(NodeBundle {
+			style: Style {
+				size: Size::new(Val::Px(68.), Val::Px(68.)),
+				position_type: PositionType::Absolute,
+				position: UiRect {
+					right: Val::Px(8.0),
+					bottom: Val::Px(8.0),
+					..default()
+				},
+				..default()
+			},
+			background_color: BackgroundColor(Color::rgba_u8(255, 255, 255, 127)),
+			z_index: ZIndex::Local(0),
+			..default()
+		})
+		.insert(SpellIndicator);
+
 	// Make spell icons on the bottom-right
 	let fireball_handle = asset_server.load("painterly-spell-icons/fireball-red-1.png");
-	let explosion_handle = asset_server.load("painterly-spell-icons/explosion-orange-2.png");
 	let storm_handle = asset_server.load("painterly-spell-icons/ice-sky-3.png");
+	let explosion_handle = asset_server.load("painterly-spell-icons/explosion-orange-2.png");
 
-	commands.spawn(ImageBundle {
-		style: Style {
-			size: Size::new(Val::Px(64.), Val::Px(64.)),
-			position_type: PositionType::Absolute,
-			position: UiRect {
-				right: Val::Px(10.0),
-				bottom: Val::Px(10.0),
+	for (i, &handle) in [&fireball_handle, &storm_handle, &explosion_handle].iter().enumerate() {
+		commands.spawn(ImageBundle {
+			style: Style {
+				size: Size::new(Val::Px(64.), Val::Px(64.)),
+				position_type: PositionType::Absolute,
+				position: UiRect {
+					right: Val::Px(10.0 + (64. + 10.) * (i as f32)),
+					bottom: Val::Px(10.0),
+					..default()
+				},
 				..default()
 			},
+			image: UiImage(handle.clone()),
+			z_index: ZIndex::Local(1),
 			..default()
-		},
-		image: UiImage(fireball_handle.clone()),
-		..default()
-	});
-
-	commands.spawn(ImageBundle {
-		style: Style {
-			size: Size::new(Val::Px(64.), Val::Px(64.)),
-			position_type: PositionType::Absolute,
-			position: UiRect {
-				right: Val::Px(10.0 + 64. + 10.),
-				bottom: Val::Px(10.0),
-				..default()
-			},
-			..default()
-		},
-		image: UiImage(explosion_handle.clone()),
-		..default()
-	});
-
-	commands.spawn(ImageBundle {
-		style: Style {
-			size: Size::new(Val::Px(64.), Val::Px(64.)),
-			position_type: PositionType::Absolute,
-			position: UiRect {
-				right: Val::Px(10.0 + (64. + 10.) * 2.),
-				bottom: Val::Px(10.0),
-				..default()
-			},
-			..default()
-		},
-		image: UiImage(storm_handle.clone()),
-		..default()
-	});
+		});
+	}
 }
 
 fn update_player_health_indicators(players: Query<&Player>, mut indicators: Query<(&mut Visibility, &PlayerHealthIndicator)>) {
@@ -160,6 +156,22 @@ fn update_player_health_indicators(players: Query<&Player>, mut indicators: Quer
 		} else {
 			false
 		};
+	}
+}
+
+fn update_spell_indicator(players: Query<&Player>, mut indicators: Query<&mut Style, With<SpellIndicator>>) {
+	let mut spell_index = 0;
+	for player in players.iter() {
+		use crate::player::PlayerWeaponSelect::*;
+		spell_index = match &player.select {
+			Firebolt => 0,
+			Crystals => 1,
+			Mine => 2,
+		};
+	}
+
+	for mut style in indicators.iter_mut() {
+		style.position.right = Val::Px(8.0 + (2 - spell_index) as f32 * (64. + 10.));
 	}
 }
 
