@@ -11,13 +11,13 @@ pub struct Projectile {
 #[derive(Component)]
 pub struct Firebolt;
 
-const FIREBALL_LIFE: f32 = 1.0;
-const CRYSTAL_LIFE: f32 = 0.6;
-const MINE_LIFE: f32 = 7.0;
+pub const FIREBALL_LIFE: f32 = 1.0;
+pub const CRYSTAL_LIFE: f32 = 0.6;
+pub const MINE_LIFE: f32 = 7.0;
 
-const FIREBALL_COOLDOWN: f32 = 0.6;
-const CRYSTAL_COOLDOWN: f32 = 0.16;
-const MINE_COOLDOWN: f32 = 2.0;
+pub const FIREBALL_COOLDOWN: f32 = 0.6;
+pub const CRYSTAL_COOLDOWN: f32 = 0.17;
+pub const MINE_COOLDOWN: f32 = 2.0;
 
 #[derive(Component)]
 pub struct Crystal {
@@ -123,11 +123,11 @@ fn cast_spell(
 					..default()
 				},
 				Velocity {
-					linvel: heading * 10.0 * 60.,
+					linvel: heading * 7.0 * 60.,
 					angvel: 0.0,
 				},
 				Projectile { damage: 5 },
-				ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+				ProjectileTimer(Timer::from_seconds(FIREBALL_LIFE, TimerMode::Once)),
 				Bounded { size: Vec2::splat(16.0) },
 				RigidBody::Dynamic,
 				LockedAxes::ROTATION_LOCKED,

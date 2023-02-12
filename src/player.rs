@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::mob::*;
+use crate::{mob::*, shooting::*};
 
 pub enum PlayerWeaponSelect {
 	Firebolt,
@@ -185,9 +185,9 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			size: Vec2::new(32., 32.),
 		},
 		CollidesWithWalls,
-		FireboltCooldownTimer(Timer::from_seconds(0.6, TimerMode::Once)),
-		CrystalCooldownTimer(Timer::from_seconds(0.1, TimerMode::Once)),
-		MineCooldownTimer(Timer::from_seconds(6.0, TimerMode::Once)),
+		FireboltCooldownTimer(Timer::from_seconds(FIREBALL_COOLDOWN, TimerMode::Once)),
+		CrystalCooldownTimer(Timer::from_seconds(CRYSTAL_COOLDOWN, TimerMode::Once)),
+		MineCooldownTimer(Timer::from_seconds(MINE_COOLDOWN, TimerMode::Once)),
 		RigidBody::Dynamic,
 		Collider::cuboid(12.0, 12.0),
 		Ccd::enabled(),
