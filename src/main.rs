@@ -93,6 +93,9 @@ fn main() {
 					},
 				}),
 		)
+		.add_system_set(SystemSet::on_update(AppState::Alive).with_system(check_if_dead))
+		.add_system_set(SystemSet::on_update(AppState::Dead).with_system(enter_dead))
+		.add_system_set(SystemSet::on_enter(AppState::Alive).with_system(reset_vars))
 		.add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(32.))
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
@@ -122,10 +125,13 @@ fn main() {
 		// Startup Systems
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
+		.add_system(player_shoot)
 		// Enemies
 		// .add_startup_system(spawn_boss)
 		.add_system(update_level_using_gems)
 		.add_system(spawn_random_enemy)
+		.add_system(danger_hit_player)
+		.add_system(tick_down_player_invincibility)
 		.add_system(unspawn_dead_mobs)
 		.add_system(run_wraith)
 		.add_system(run_goo)
@@ -140,9 +146,6 @@ fn main() {
 		.add_system(update_velocity)
 		.add_system(update_select)
 		.add_system(animate_player_sprite)
-		.add_system(player_shoot)
-		.add_system(tick_down_player_invincibility)
-		.add_system(danger_hit_player)
 		.add_system(update_cooldowns)
 		.add_system(update_crystals_velocity)
 		.add_system(update_mines_velocity)
@@ -200,6 +203,70 @@ fn setup(
 	simulator.post_init();
 }
 
+pub fn check_if_dead(players: Query<&Player>, mut app_state: ResMut<State<AppState>>) {
+	for player in players.iter() {
+		if player.health <= 0 {
+			app_state.set(AppState::Dead).unwrap_or(());
+			return;
+		}
+	}
+}
+
+pub fn enter_dead(mut commands: Commands, mut app_state: ResMut<State<AppState>>) {
+	println!("Entering dead");
+	app_state.clear_schedule();
+	app_state.set(AppState::Alive).unwrap_or(());
+	return;
+}
+
+pub fn reset_vars(
+	mut commands: Commands,
+	asset_server: Res<AssetServer>,
+	mut simulator: ResMut<Simulator>,
+	mut set: ParamSet<(
+		Query<(&mut Transform, &mut Player)>,
+		Query<(Entity, &EnemyBoss)>,
+		Query<(Entity, &Mob)>,
+		Query<(Entity, &Projectile)>,
+	)>,
+) {
+	println!("Restting vars");
+	for (mut transform, mut player) in set.p0().iter_mut() {
+		*transform = Transform::from_translation(Vec3::new(32. * MAP_RADIUS as f32, 32. * MAP_RADIUS as f32, 2.));
+		*player = Player {
+			level: 0,
+			health: MAX_HEALTH,
+			invincibility_seconds: 2.0,
+			gem_count: 0,
+			select: PlayerWeaponSelect::Firebolt,
+		};
+	}
+	*simulator = Simulator::new(
+		MAP_RADIUS * 2,
+		(3, 6),
+		(10, MAP_RADIUS - 6),
+		(10, 13),
+		15,
+		(20, 30),
+		2,
+		10,
+		20,
+		5,
+		20,
+	);
+	simulator.post_init();
+	for (boss, _) in set.p1().iter() {
+		commands.entity(boss).insert(Despawn);
+	}
+	//boss::spawn_boss(&mut commands, &asset_server, Vec2::new(0.0, 0.0));
+	for (mob, _) in set.p2().iter() {
+		commands.entity(mob).insert(Despawn);
+	}
+	for (projectile, _) in set.p3().iter() {
+		commands.entity(projectile).insert(Despawn);
+	}
+}
+
 pub fn simulator_step(
 	mut commands: Commands,
 	mut simulator: ResMut<Simulator>,
@@ -209,12 +276,17 @@ pub fn simulator_step(
 	time: Res<Time>,
 	keyboard_input: Res<Input<KeyCode>>,
 	atlases: Res<Atlases>,
+	asset_server: Res<AssetServer>,
 ) {
 	let player_trans = player.single().translation.truncate();
 	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
 	if keyboard_input.just_pressed(KeyCode::E) {
-		if simulator.grid.campfires.contains(&player_pos) {
+		// Spawn boss if close to boss spawner
+		let boss_room_loc = simulator.boss_room_loc();
+		if boss_room_loc.as_vec2().distance(player_pos.as_vec2()) < 5. {
+			spawn_boss(&mut commands, &asset_server, _tile_position_to_position(&boss_room_loc))
+		} else if simulator.grid.campfires.contains(&player_pos) {
 			simulator.remove_campfire(player_pos);
 			for (e, t) in structures.iter() {
 				let structure_trans = t.translation.truncate();

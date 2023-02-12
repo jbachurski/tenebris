@@ -26,11 +26,10 @@ pub struct Structure;
 #[derive(Component)]
 pub struct Overlay;
 
-#[derive(Reflect, Clone, Debug, Resource, InspectorOptions, ExtractResource)]
-#[reflect(Resource, InspectorOptions)]
+#[derive(Clone, Debug, Resource, InspectorOptions, ExtractResource)]
 pub struct TileManager {
-	pub is_wall: [[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
-	pub lightmap: [[f32; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+	pub is_wall: Box<[[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]>,
+	pub lightmap: Box<[[f32; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]>,
 	pub spawned_tiles: HashSet<UVec2>,
 	pub campfires: HashSet<UVec2>,
 	pub structures: HashMap<UVec2, StructureType>,
@@ -40,8 +39,8 @@ pub struct TileManager {
 impl Default for TileManager {
 	fn default() -> Self {
 		return Self {
-			is_wall: [[false; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
-			lightmap: [[0.; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+			is_wall: Box::new([[false; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]),
+			lightmap: Box::new([[0.; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2]),
 			spawned_tiles: default(),
 			campfires: default(),
 			structures: default(),
@@ -53,7 +52,7 @@ impl Default for TileManager {
 pub fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
-fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+pub fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
 	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
 }
 pub fn spawn_tile(
@@ -191,19 +190,7 @@ pub fn update_lightmap(
 	for (entity, transform) in overlays.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		let (i, j) = tile_position.into();
-		commands.entity(entity).despawn();
-		/*
-		commands
-			.spawn(SpriteBundle {
-				transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 10.),
-				sprite: Sprite {
-					color: Color::rgba(0., 0., 0., 1.-simulator.grid.lightmap[i as usize][j as usize]),
-					custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
-					..default()
-				},
-				..default()
-			}).insert(Overlay);
-			*/
+		commands.entity(entity).insert(Despawn);
 	}
 
 	for camera in cameras.iter() {
