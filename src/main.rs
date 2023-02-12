@@ -24,8 +24,8 @@ use tiles::*;
 mod shooting;
 use shooting::*;
 
-mod minimap;
-use minimap::*;
+mod hud;
+use hud::*;
 
 mod mob;
 use mob::*;
