@@ -6,6 +6,9 @@ pub mod utils;
 pub mod wraith;
 use wraith::*;
 
+pub mod boss;
+use boss::*;
+
 pub mod goo;
 use goo::*;
 
