@@ -126,6 +126,7 @@ fn main() {
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
 		.add_system(mob_face_movement)
+		.add_system(despawn_far_enemies)
 		.run();
 }
 

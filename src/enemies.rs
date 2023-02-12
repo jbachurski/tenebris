@@ -60,3 +60,20 @@ pub fn spawn_random_enemy(
 		}
 	}
 }
+
+pub fn despawn_far_enemies(
+	mut commands: Commands,
+	simulator: Res<Simulator>,
+	enemy_query: Query<(Entity, &Transform), With<Enemy>>,
+	player_query: Query<&Transform, With<Player>>,
+) {
+	let player_position = player_query.single().translation.truncate();
+	let despawn_distance = simulator.reality_params.1 as f32 * TILE_SIZE as f32;
+
+	for (entity, transform) in enemy_query.iter() {
+		let position = transform.translation.truncate();
+		if (player_position - position).length() > despawn_distance {
+			commands.entity(entity).despawn();
+		}
+	}
+}
