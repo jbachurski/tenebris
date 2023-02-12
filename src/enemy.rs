@@ -18,8 +18,8 @@ pub struct EnemyWraith {
 }
 
 enum EnemyGooState {
-	Jumping(u32, Vec2),
-	Waiting(u32),
+	Jumping(f32, Vec2),
+	Waiting(f32),
 }
 
 #[derive(Component)]
@@ -97,7 +97,7 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			..default()
 		})
 		.insert(EnemyGoo {
-			state: EnemyGooState::Waiting(0),
+			state: EnemyGooState::Waiting(0.0),
 		})
 		.insert(Velocity {
 			linvel: Vec2::ZERO,
@@ -194,6 +194,7 @@ pub fn run_wraith(
 }
 
 pub fn run_goo(
+	time: Res<Time>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut enemies: Query<(&mut Transform, &mut Velocity, &mut EnemyGoo), Without<Camera>>,
 ) {
@@ -203,26 +204,26 @@ pub fn run_goo(
 		enemy_tr.scale = Vec3::splat(1.0);
 		goo.state = match goo.state {
 			EnemyGooState::Jumping(ticks, heading) => {
-				if ticks > 0 {
+				if ticks > 0.0 {
 					velocity.linvel = heading * 6.0 * 60.;
-					EnemyGooState::Jumping(ticks - 1, heading)
+					EnemyGooState::Jumping(ticks - time.delta_seconds() * 60.0, heading)
 				} else {
 					velocity.linvel = Vec2::ZERO;
-					EnemyGooState::Waiting(75)
+					EnemyGooState::Waiting(75.0)
 				}
 			},
 			EnemyGooState::Waiting(ticks) => {
 				if diff.length() > 600.0 {
 					EnemyGooState::Waiting(ticks)
-				} else if ticks > 0 {
-					if ticks < 10 {
+				} else if ticks > 0.0 {
+					if ticks < 10.0 {
 						enemy_tr.scale = Vec3::splat(lerp(0.0, 1.0, 10.0, 0.8, ticks as f32));
-					} else if ticks < 50 {
+					} else if ticks < 50.0 {
 						enemy_tr.scale = Vec3::splat(lerp(10.0, 0.8, 50.0, 1.0, ticks as f32));
 					}
-					EnemyGooState::Waiting(ticks - 1)
+					EnemyGooState::Waiting(ticks - time.delta_seconds() * 60.0)
 				} else {
-					EnemyGooState::Jumping(45, diff.normalize())
+					EnemyGooState::Jumping(45.0, diff.normalize())
 				}
 			},
 		};

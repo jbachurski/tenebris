@@ -5,6 +5,7 @@ use bevy::{
 	math::Vec3Swizzles,
 	prelude::*,
 	render::render_resource::*,
+	time::FixedTimestep,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
@@ -28,8 +29,14 @@ use tiles::*;
 mod shooting;
 use shooting::*;
 
+mod minimap;
+use minimap::*;
+
 mod mob;
 use mob::*;
+
+mod tilemap;
+use tilemap::*;
 
 mod tilesim;
 use tilesim::*;
@@ -45,6 +52,7 @@ pub const SCREEN_DIMENSIONS: (f32, f32) = (1024.0, 768.0);
 pub const FOG_RADIUS: u32 = 17;
 
 pub const DESPAWN_STAGE: &str = "DESPAWN";
+const TIME_STEP: f32 = 1.0 / 60.0;
 
 fn main() {
 	App::new()
@@ -108,11 +116,11 @@ fn main() {
 		.add_system(run_goo)
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
-		.add_system(update_camera)
 		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
+		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
 		.run();
 }
 
@@ -125,17 +133,45 @@ fn setup(
 ) {
 	setup_camera(&mut commands);
 
-	// Spawn a test entity at the origin.
-	commands.spawn(SpriteBundle {
-		texture: asset_server.load("test.png"),
-		transform: Transform {
-			translation: Vec3::new(0.0, 0.0, 2.0),
-			..Default::default()
-		},
-		..default()
-	});
+	// Spawn a UI
+	commands
+		.spawn(NodeBundle {
+			style: Style {
+				size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+				justify_content: JustifyContent::SpaceBetween,
+				..default()
+			},
+			..default()
+		})
+		.with_children(|parent| {
+			parent
+				.spawn(NodeBundle {
+					style: Style {
+						size: Size::new(Val::Px(MINIMAP_SIZE), Val::Px(MINIMAP_SIZE)),
+						position_type: PositionType::Absolute,
+						position: UiRect {
+							right: Val::Px(10.0),
+							top: Val::Px(10.0),
+							..default()
+						},
+						//border: UiRect::all(Val::Px(20.0)),
+						..default()
+					},
+					background_color: Color::rgba(0.4, 0.4, 1.0, 0.1).into(),
+					..default()
+				})
+				.insert(Minimap);
+		});
 
 	// Create a texture atlas for cave.
+	atlases.cave_atlas_simple = texture_atlases.add(TextureAtlas::from_grid(
+		asset_server.load("cave/atlas_cave_simple.png"),
+		Vec2::new(32., 32.),
+		6,
+		4,
+		None,
+		None,
+	));
 	atlases.cave_atlas = texture_atlases.add(TextureAtlas::from_grid(
 		asset_server.load("cave/atlas_cave.png"),
 		Vec2::new(32., 32.),
@@ -150,7 +186,9 @@ fn setup(
 fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
-
+fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
+}
 pub fn spawn_tile(
 	commands: &mut Commands,
 	_asset_server: &AssetServer,
@@ -158,24 +196,27 @@ pub fn spawn_tile(
 	simulator: &Simulator,
 	tile_position: UVec2,
 ) {
+	let v = tile_position_rand(tile_position);
 	commands
 		.spawn(SpriteSheetBundle {
 			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
-			sprite: TextureAtlasSprite::new(
-				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
-					0
-				} else {
-					1460
-				},
-			),
+			sprite: TextureAtlasSprite::new(tile_atlas_index(simulator, tile_position)),
 			texture_atlas: atlases.cave_atlas.clone(),
 			..default()
 		})
 		.insert(RigidBody::Fixed)
+		.insert(Collider::cuboid(16., 16.))
 		.insert(Velocity::default())
-		.insert(Collider::cuboid(16.0, 16.0))
 		.insert(Sensor)
 		.insert(Tile);
+	commands
+		.spawn(SpriteSheetBundle {
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			sprite: TextureAtlasSprite::new(1775 + v % 3 + 51 * ((v / 3) % 3)),
+			texture_atlas: atlases.cave_atlas.clone(),
+			..default()
+		})
+		.insert(BackTile);
 }
 
 pub fn spawn_tiles(
@@ -203,8 +244,10 @@ pub fn spawn_tiles(
 }
 
 pub fn simulator_step(
+	mut commands: Commands,
 	mut simulator: ResMut<Simulator>,
 	mut player: Query<&Transform, With<Player>>,
+	mut minimap: Query<Entity, With<Minimap>>,
 	mut timer: ResMut<SimulatorTimer>,
 	time: Res<Time>,
 ) {
@@ -213,6 +256,34 @@ pub fn simulator_step(
 		let player_trans = player.single().translation.truncate();
 		let player_pos = position_to_tile_position(&player_trans);
 		simulator.step(player_pos);
+
+		// Process minimap
+		let minimap_entity = minimap.single();
+		commands.entity(minimap_entity).despawn_descendants();
+		commands.entity(minimap_entity).insert(Minimap).with_children(|parent| {
+			let elem_width = MINIMAP_SIZE / (2.0 * MAP_RADIUS as f32);
+			for i in 0..MAP_RADIUS * 2 {
+				for j in 0..MAP_RADIUS * 2 {
+					let loc = UVec2::new(i, j);
+					if simulator.grid.reality_bubble.contains(&loc) {
+						parent.spawn(NodeBundle {
+							style: Style {
+								size: Size::new(Val::Px(elem_width), Val::Px(elem_width)),
+								position_type: PositionType::Absolute,
+								position: UiRect {
+									left: Val::Px(elem_width * i as f32),
+									bottom: Val::Px(elem_width * j as f32),
+									..default()
+								},
+								..default()
+							},
+							background_color: get_minimap_color(&simulator, i, j),
+							..default()
+						});
+					}
+				}
+			}
+		});
 	}
 }
 
@@ -247,15 +318,12 @@ pub fn update_tiles(
 	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
-			*ta_sprite = TextureAtlasSprite::new(
-				if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
-					commands.entity(entity).remove::<Sensor>();
-					0
-				} else {
-					commands.entity(entity).insert(Sensor);
-					1460
-				},
-			);
+			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position));
+			if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
+				commands.entity(entity).remove::<Sensor>();
+			} else {
+				commands.entity(entity).insert(Sensor);
+			}
 		}
 	}
 }
