@@ -2,6 +2,7 @@ use bevy::{prelude::*, render::render_resource::TextureFormat};
 use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
+	gems::Gem,
 	player::{CrystalCooldownTimer, FireboltCooldownTimer, MineCooldownTimer, Player, PlayerWeaponSelect, MAX_HEALTH},
 	tiles::position_to_tile_position,
 	tilesim::Simulator,
@@ -17,7 +18,8 @@ impl Plugin for MinimapPlugin {
 			.add_system(update_total_minimap)
 			.add_system(update_player_health_indicators)
 			.add_system(update_spell_cooldown_overlays)
-			.add_system(update_spell_indicator);
+			.add_system(update_spell_indicator)
+			.add_system(update_gem_count);
 	}
 }
 
@@ -33,6 +35,9 @@ struct PlayerHealthIndicator {
 
 #[derive(Component)]
 struct SpellIndicator;
+
+#[derive(Component)]
+struct GemCount;
 
 #[derive(Component)]
 struct SpellCooldownOverlay(PlayerWeaponSelect);
@@ -105,6 +110,29 @@ fn setup_total_minimap(
 		..default()
 	});
 
+	commands
+		.spawn(
+			TextBundle::from_section(
+				"12",
+				TextStyle {
+					font: asset_server.load("fonts/DejaVuSans.ttf"),
+					font_size: 16.0,
+					color: Color::WHITE,
+				},
+			)
+			.with_style(Style {
+				size: Size::new(Val::Px(32.), Val::Px(32.)),
+				margin: UiRect {
+					top: Val::Auto,
+					left: Val::Px(74.0),
+					bottom: Val::Px(10.0),
+					..default()
+				},
+				..default()
+			}),
+		)
+		.insert(GemCount);
+
 	// Add current spell indicator on the bottom-right
 	commands
 		.spawn(NodeBundle {
@@ -173,6 +201,25 @@ fn setup_total_minimap(
 				..default()
 			})
 			.insert(SpellCooldownOverlay(spell.clone()));
+	}
+}
+
+fn update_gem_count(asset_server: Res<AssetServer>, players: Query<&Player>, mut indicators: Query<(&mut Text, &GemCount)>) {
+	let mut count = 0;
+
+	for player in players.iter() {
+		count = player.gem_count;
+	}
+
+	for (mut text, _) in indicators.iter_mut() {
+		text.sections = vec![TextSection::new(
+			count.to_string(),
+			TextStyle {
+				font: asset_server.load("fonts/DejaVuSans.ttf"),
+				font_size: 16.0,
+				color: Color::WHITE,
+			},
+		)];
 	}
 }
 
