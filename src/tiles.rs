@@ -53,7 +53,7 @@ impl Default for TileManager {
 pub fn position_to_tile_position(position: &Vec2) -> UVec2 {
 	(*position / Vec2::splat(TILE_SIZE)).round().as_uvec2()
 }
-fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
+pub fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
 	Vec2::new(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE)
 }
 pub fn spawn_tile(

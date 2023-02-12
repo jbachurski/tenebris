@@ -208,12 +208,17 @@ pub fn simulator_step(
 	time: Res<Time>,
 	keyboard_input: Res<Input<KeyCode>>,
 	atlases: Res<Atlases>,
+	asset_server: Res<AssetServer>,
 ) {
 	let player_trans = player.single().translation.truncate();
 	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
 	if keyboard_input.just_pressed(KeyCode::E) {
-		if simulator.grid.campfires.contains(&player_pos) {
+		// Spawn boss if close to boss spawner
+		let boss_room_loc = simulator.boss_room_loc();
+		if boss_room_loc.as_vec2().distance(player_pos.as_vec2()) < 5. {
+			spawn_boss(&mut commands, &asset_server, _tile_position_to_position(&boss_room_loc))
+		} else if simulator.grid.campfires.contains(&player_pos) {
 			simulator.remove_campfire(player_pos);
 			for (e, t) in structures.iter() {
 				let structure_trans = t.translation.truncate();
