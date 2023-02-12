@@ -123,6 +123,7 @@ fn main() {
 		//.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(simulator_step)
 		.add_system(spawn_random_enemy)
+		.add_startup_system(spawn_boss)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
