@@ -94,8 +94,7 @@ fn main() {
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
-		.insert_resource(TotalMinimap::default())
-		//.add_plugin(WorldInspectorPlugin)
+		.add_plugin(MinimapPlugin)
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
@@ -112,8 +111,6 @@ fn main() {
 		.add_system(unspawn_dead_mobs)
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
-		.add_startup_system(setup_total_minimap)
-		.add_system(update_total_minimap)
 		.add_system(simulator_step)
 		.add_startup_system(spawn_enemies)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
@@ -167,7 +164,6 @@ pub fn simulator_step(
 	mut commands: Commands,
 	mut simulator: ResMut<Simulator>,
 	player: Query<&Transform, With<Player>>,
-	minimap: Query<Entity, With<Minimap>>,
 	structures: Query<(Entity, &Transform), With<Structure>>,
 	mut timer: ResMut<SimulatorTimer>,
 	time: Res<Time>,
