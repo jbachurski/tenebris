@@ -3,7 +3,6 @@ use bevy::{
 	prelude::*,
 	render::render_resource::*,
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
@@ -95,7 +94,6 @@ fn main() {
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
-		.add_plugin(WorldInspectorPlugin)
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
 		.add_system(update_velocity)
