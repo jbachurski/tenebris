@@ -26,3 +26,23 @@ pre-commit run --all-files
 ```
 
 To run the pre-commit hooks manually.
+
+## Credits
+
+### opengameart.org
+- Clint Bellanger (http://clintbellanger.net, http://heroinedusk.com)
+- One Man Army (@OneManArmyDev)
+- Antifarea
+- krial
+- Calciumtrice
+- Tiao Ferreira
+- Chrisblue
+- Jianhui999
+
+### pixilart.com
+- @Gummybearman06
+
+### Other
+- Szadi art
+- J. W. Bjerk (eleazzaar)
+- Bitstream
