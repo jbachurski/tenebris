@@ -51,7 +51,7 @@ pub fn spawn_random_enemy(
 		let pos = position_to_tile_position(&spawn_position);
 
 		// Enemies failing to spawn sometimes adds randomness and is fine
-		if !simulator.in_bounds(pos) || simulator.grid.is_wall[pos.x as usize][pos.y as usize] {
+		if simulator.in_bounds(pos) && simulator.grid.is_wall[pos.x as usize][pos.y as usize] {
 			return;
 		}
 
