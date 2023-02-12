@@ -4,7 +4,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::{mob::*, player::*, tiles::position_to_tile_position, utils::*, Simulator};
+use crate::{gems::DropsGems, mob::*, player::*, tiles::position_to_tile_position, utils::*, Simulator};
 
 pub enum BossState {
 	Waiting(f32),
@@ -52,7 +52,8 @@ pub fn spawn_boss(mut commands: &mut Commands, asset_server: &Res<AssetServer>) 
 			damage: 1,
 			hit_despawn: false,
 			til_despawn: f32::INFINITY,
-		});
+		})
+		.insert(DropsGems(15, 15));
 }
 
 pub fn boss_shoot(commands: &mut Commands, asset_server: &Res<AssetServer>, source: Vec2, angle: f32) {

@@ -38,6 +38,9 @@ use tilesim::*;
 mod utils;
 use utils::*;
 
+mod gems;
+use gems::*;
+
 mod structures;
 
 #[derive(Component)]
@@ -152,6 +155,7 @@ fn main() {
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
+		.add_system(player_collect_gem)
 		.run();
 }
 
