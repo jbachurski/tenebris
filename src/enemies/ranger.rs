@@ -1,6 +1,6 @@
 use std::{f32::consts::TAU, vec::Vec};
 
-use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
@@ -33,19 +33,26 @@ fn best_heading<F: FnMut(Vec2) -> f32>(n: usize, mut grade: F) -> Vec2 {
 #[derive(Component)]
 pub struct EnemyRanger;
 
+#[derive(Component, Deref, DerefMut)]
+pub struct RangerAnimationTimer(Timer);
+
 pub fn spawn_ranger(
 	commands: &mut Commands,
-	meshes: &mut ResMut<Assets<Mesh>>,
-	materials: &mut ResMut<Assets<ColorMaterial>>,
+	asset_server: &mut Res<AssetServer>,
+	texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
 	position: Vec3,
 ) {
+	let texture_handle = asset_server.load("ranger.png");
+	let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 10, 10, None, None);
+	let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
 	commands.spawn((
-		MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
+		SpriteSheetBundle {
+			texture_atlas: texture_atlas_handle,
 			transform: Transform::from_translation(position),
 			..default()
 		},
+		RangerAnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
 		EnemyRanger,
 		Bounded {
 			size: Vec2::splat(2. * 20.),
@@ -60,6 +67,7 @@ pub fn spawn_ranger(
 		CollidesWithWalls,
 		Collider::cuboid(12.0, 12.0),
 		Enemy,
+		SpriteFacingMovement,
 	));
 }
 
@@ -81,12 +89,12 @@ pub fn run_ranger(
 					result -= 0.5 * dister(v, *other - pos, 30.0);
 				}
 			}
-			lines.line_colored(
-				pos.extend(1.0),
-				(pos + 100.0 * result.abs() * v).extend(1.0),
-				0.0,
-				if result < 0.0 { Color::RED } else { Color::GREEN },
-			);
+			// lines.line_colored(
+			// 	pos.extend(1.0),
+			// 	(pos + 100.0 * result.abs() * v).extend(1.0),
+			// 	0.0,
+			// 	if result < 0.0 { Color::RED } else { Color::GREEN },
+			// );
 			result
 		};
 
@@ -94,5 +102,28 @@ pub fn run_ranger(
 		let v_mod = (grade(target_v) / 0.7).clamp(0.0, 1.0).sqrt();
 
 		velocity.linvel = target_v * 2.0 * v_mod * 60.;
+	}
+}
+
+pub fn animate_ranger_sprite(
+	time: Res<Time>,
+	texture_atlases: Res<Assets<TextureAtlas>>,
+	mut query: Query<(
+		&mut RangerAnimationTimer,
+		&mut TextureAtlasSprite,
+		&Handle<TextureAtlas>,
+		&Velocity,
+	)>,
+) {
+	for (mut timer, mut sprite, texture_atlas_handle, velocity) in &mut query {
+		timer.tick(time.delta());
+		if timer.just_finished() {
+			let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+			if velocity.linvel.length() < 1e-5 {
+				sprite.index = 20
+			} else {
+				sprite.index = 20 + (i32::max(0, sprite.index as i32 - 19) as usize % 10);
+			}
+		}
 	}
 }

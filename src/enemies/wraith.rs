@@ -13,16 +13,10 @@ pub struct EnemyWraith {
 	angle_vel: f32,
 }
 
-pub fn spawn_wraith(
-	commands: &mut Commands,
-	meshes: &mut ResMut<Assets<Mesh>>,
-	materials: &mut ResMut<Assets<ColorMaterial>>,
-	position: Vec3,
-) {
+pub fn spawn_wraith(commands: &mut Commands, asset_server: &mut Res<AssetServer>, position: Vec3) {
 	commands.spawn((
-		MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::ORANGE_RED)),
+		SpriteBundle {
+			texture: asset_server.load("wraith.png"),
 			transform: Transform::from_translation(position),
 			..default()
 		},
@@ -41,6 +35,7 @@ pub fn spawn_wraith(
 			angvel: 0.0,
 		},
 		Enemy,
+		SpriteFacingMovement,
 	));
 }
 
@@ -58,12 +53,12 @@ pub fn run_wraith(
 		wraith.angle_vel += (angle_diff / 3.0).clamp(-TAU / 1024.0, TAU / 1024.0);
 		wraith.angle_vel = wraith.angle_vel.clamp(-TAU / 256.0, TAU / 256.0);
 		wraith.angle += wraith.angle_vel * time.delta_seconds() * 60.0;
-		lines.line_colored(
-			enemy_tr.translation,
-			enemy_tr.translation + (Vec2::from_angle(wraith.angle) * 70.0).extend(1.0),
-			0.0,
-			Color::YELLOW,
-		);
+		// lines.line_colored(
+		// 	enemy_tr.translation,
+		// 	enemy_tr.translation + (Vec2::from_angle(wraith.angle) * 70.0).extend(1.0),
+		// 	0.0,
+		// 	Color::YELLOW,
+		// );
 		velocity.linvel =
 			(3.0 + 1.0 * (1.0 - (angle_diff.abs() / (TAU / 4.0)).min(1.0))) * Vec2::from_angle(wraith.angle) * 60.;
 	}
