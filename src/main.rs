@@ -123,7 +123,10 @@ fn setup(
 	asset_server: Res<AssetServer>,
 	mut simulator: ResMut<Simulator>,
 	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+	mut rapier_configuration: ResMut<RapierConfiguration>,
 ) {
+	rapier_configuration.gravity = Vec2::ZERO;
+
 	setup_camera(&mut commands);
 
 	// Spawn a UI
