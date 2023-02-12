@@ -1,6 +1,7 @@
-use crate::tilesim::Simulator;
 use bevy::prelude::*;
 use rand::*;
+
+use crate::tilesim::Simulator;
 
 #[derive(Clone, Debug, FromReflect, Reflect)]
 pub enum StructureType {

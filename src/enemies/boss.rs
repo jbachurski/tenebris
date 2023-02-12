@@ -4,9 +4,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::tiles::position_to_tile_position;
-use crate::Simulator;
-use crate::{mob::*, player::*, utils::*};
+use crate::{mob::*, player::*, tiles::position_to_tile_position, utils::*, Simulator};
 
 pub enum BossState {
 	Waiting(f32),

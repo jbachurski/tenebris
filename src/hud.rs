@@ -2,6 +2,7 @@ use bevy::{prelude::*, render::render_resource::TextureFormat};
 use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
+	player::{Player, MAX_HEALTH},
 	tilesim::Simulator,
 	utils::{DEBUG_OMNISCIENCE, MAP_RADIUS, MINIMAP_SIZE},
 };
@@ -12,7 +13,8 @@ impl Plugin for MinimapPlugin {
 	fn build(&self, app: &mut App) {
 		app.init_resource::<TotalMinimap>()
 			.add_startup_system(setup_total_minimap)
-			.add_system(update_total_minimap);
+			.add_system(update_total_minimap)
+			.add_system(update_player_health_indicators);
 	}
 }
 
@@ -21,7 +23,17 @@ struct TotalMinimap {
 	handle: Handle<Image>,
 }
 
-fn setup_total_minimap(mut commands: Commands, mut assets: ResMut<Assets<Image>>, mut total_minimap: ResMut<TotalMinimap>) {
+#[derive(Component)]
+struct PlayerHealthIndicator {
+	health_threshold: i32,
+}
+
+fn setup_total_minimap(
+	asset_server: Res<AssetServer>,
+	mut commands: Commands,
+	mut assets: ResMut<Assets<Image>>,
+	mut total_minimap: ResMut<TotalMinimap>,
+) {
 	total_minimap.handle = assets.add(Image::from_dynamic(
 		DynamicImage::ImageRgba8(ImageBuffer::new(MAP_RADIUS * 2, MAP_RADIUS * 2)),
 		true,
@@ -40,6 +52,47 @@ fn setup_total_minimap(mut commands: Commands, mut assets: ResMut<Assets<Image>>
 		image: UiImage(total_minimap.handle.clone()),
 		..default()
 	});
+
+	let heart_handle = asset_server.load("heart.png");
+
+	for i in 0..5 {
+		// Make three hearts on the side.
+		commands
+			.spawn(ImageBundle {
+				style: Style {
+					size: Size::new(Val::Px(32. * 2.), Val::Px(32. * 2.)),
+					position_type: PositionType::Absolute,
+					position: UiRect {
+						left: Val::Px(10.0 + 32. * (i as f32)),
+						top: Val::Px(10.0),
+						..default()
+					},
+					..default()
+				},
+				image: UiImage(heart_handle.clone()),
+				..default()
+			})
+			.insert(Visibility { is_visible: true })
+			.insert(PlayerHealthIndicator {
+				health_threshold: (MAX_HEALTH / 5) * (1 + i),
+			});
+	}
+}
+
+fn update_player_health_indicators(players: Query<&Player>, mut indicators: Query<(&mut Visibility, &PlayerHealthIndicator)>) {
+	let mut player_health = 0;
+
+	for player in players.iter() {
+		player_health = player.health;
+	}
+
+	for (mut visibility, indicator) in indicators.iter_mut() {
+		visibility.is_visible = if indicator.health_threshold <= player_health {
+			true
+		} else {
+			false
+		};
+	}
 }
 
 fn update_total_minimap(total_minimap: Res<TotalMinimap>, simulator: Res<Simulator>, mut assets: ResMut<Assets<Image>>) {

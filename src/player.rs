@@ -8,6 +8,7 @@ pub enum PlayerWeaponSelect {
 	Crystals,
 	Mine,
 }
+pub const MAX_HEALTH: i32 = 20;
 
 #[derive(Component)]
 pub struct Player {
@@ -159,13 +160,13 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 
 	commands.spawn((
 		Player {
-			health: 20,
+			health: MAX_HEALTH,
 			invincibility_seconds: 2.0,
 			select: PlayerWeaponSelect::Firebolt,
 		},
 		Velocity::default(),
 		Acceleration {
-			max_velocity: 10.0 * 60.,
+			max_velocity: 5.0 * 60.,
 			rate: 2.0 * 60.,
 		},
 		SpriteSheetBundle {

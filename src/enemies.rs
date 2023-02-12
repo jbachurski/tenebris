@@ -10,12 +10,13 @@ pub mod boss;
 use boss::*;
 
 pub mod goo;
+use std::f32::consts::TAU;
+
+use bevy::prelude::*;
 use goo::*;
+use rand::prelude::*;
 
 use crate::{player::*, tiles::*, tilesim::*};
-use bevy::prelude::*;
-use rand::prelude::*;
-use std::f32::consts::TAU;
 
 #[derive(Resource)]
 pub struct EnemySpawner {
@@ -50,7 +51,7 @@ pub fn spawn_random_enemy(
 		let pos = position_to_tile_position(&spawn_position);
 
 		// Enemies failing to spawn sometimes adds randomness and is fine
-		if simulator.grid.is_wall[pos.x as usize][pos.y as usize] {
+		if !simulator.in_bounds(pos) || simulator.grid.is_wall[pos.x as usize][pos.y as usize] {
 			return;
 		}
 
