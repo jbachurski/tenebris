@@ -4,7 +4,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
-use super::utils::*;
+use super::{utils::*, Enemy};
 use crate::{mob::*, player::*};
 
 const GRADE_VECTORS: usize = 20;
@@ -59,6 +59,7 @@ pub fn spawn_ranger(
 		LockedAxes::ROTATION_LOCKED,
 		CollidesWithWalls,
 		Collider::cuboid(12.0, 12.0),
+		Enemy,
 	));
 }
 

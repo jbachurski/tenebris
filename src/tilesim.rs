@@ -13,7 +13,7 @@ pub struct Simulator {
 	radii: (u32, u32),
 	weights: (u32, u32),
 	campfire_radius: u32,
-	reality_params: (u32, u32),
+	pub reality_params: (u32, u32),
 	despawn_prob: f32,
 	n_structures: u32,
 	structure_dist: u32,

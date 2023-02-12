@@ -6,6 +6,8 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{mob::*, player::*};
 
+use super::Enemy;
+
 #[derive(Component)]
 pub struct EnemyWraith {
 	angle: f32,
@@ -39,6 +41,7 @@ pub fn spawn_wraith(
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
 		},
+		Enemy,
 	));
 }
 

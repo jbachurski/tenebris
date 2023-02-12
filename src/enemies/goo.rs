@@ -1,8 +1,8 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_rapier2d::prelude::*;
 
-use super::utils::*;
 use crate::{mob::*, player::*};
+use super::{utils::*, Enemy};
 
 enum EnemyGooState {
 	Jumping(f32, Vec2),
@@ -42,6 +42,7 @@ pub fn spawn_goo(
 		LockedAxes::ROTATION_LOCKED,
 		CollidesWithWalls,
 		Collider::cuboid(12.0, 12.0),
+		Enemy,
 	));
 }
 

@@ -97,6 +97,10 @@ fn main() {
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())
 		.insert_resource(Msaa { samples: 1 })
+		.insert_resource(EnemySpawner {
+			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+			max_enemy_count: 8,
+		})
 		.add_plugin(MinimapPlugin)
 		.add_startup_system(setup)
 		.add_startup_system(setup_player)
@@ -117,7 +121,7 @@ fn main() {
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(simulator_step)
-		.add_startup_system(spawn_random_enemy)
+		.add_system(spawn_random_enemy)
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
