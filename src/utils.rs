@@ -2,7 +2,7 @@ use bevy::prelude::UVec2;
 use rand::*;
 
 pub const MINIMAP_SIZE: f32 = 200.0;
-pub const MAP_RADIUS: u32 = 100;
+pub const MAP_RADIUS: u32 = 200;
 pub const MAP_RADIUS_USIZE: usize = MAP_RADIUS as usize;
 pub const DEBUG_OMNISCIENCE: bool = false;
 
