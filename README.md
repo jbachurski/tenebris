@@ -1,5 +1,13 @@
 # Memorynth
 
+## Description
+
+Fight your way out of a maze you (and the game) can't remember. You can only remember the tiles that you can see around you; if you move away from an area and move back, you may notice that some things have changed.
+
+Place down campfires (by pressing E) to remember a small area around the campfire. Watch out though, as the passageway leading to the campfire could also be forgotten.
+
+This game was written in Rust and using the [Bevy](https://bevyengine.org/) game engine. There are also a couple of experiments written in Python that you can check out in the `demos` directory.
+
 ## Development
 
 ### Pre-commit hooks
