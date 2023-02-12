@@ -1,4 +1,5 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
+use bevy_rapier2d::prelude::Velocity;
 
 use crate::{player::*, shooting::Projectile, Despawn};
 
@@ -14,7 +15,6 @@ pub struct CollidesWithWalls;
 pub struct Mob {
 	pub health: u32,
 }
-
 
 pub fn projectile_hit_mobs(
 	mut commands: Commands,
@@ -51,7 +51,7 @@ pub fn mob_face_movement(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocit
 
 pub fn unspawn_dead_mobs(mut commands: Commands, mobs: Query<(Entity, &Mob), Without<Player>>) {
 	for (entity, mob) in mobs.iter() {
-		if (mob.health == 0) {
+		if mob.health == 0 {
 			commands.entity(entity).insert(Despawn);
 		}
 	}
