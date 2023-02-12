@@ -245,6 +245,10 @@ impl Simulator {
 		self.grid.campfires.remove(&loc);
 	}
 
+	pub fn in_bounds(&self, loc: UVec2) -> bool {
+		return 0 <= loc.x && loc.x <= self.width && 0 <= loc.y && loc.y <= self.width;
+	}
+
 	pub fn debug_output(&self) {
 		let mut cs = 0;
 		for i in 0..self.width {

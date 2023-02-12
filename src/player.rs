@@ -143,7 +143,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		},
 		Velocity::default(),
 		Acceleration {
-			max_velocity: 10.0 * 60.,
+			max_velocity: 5.0 * 60.,
 			rate: 2.0 * 60.,
 		},
 		SpriteSheetBundle {
