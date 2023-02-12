@@ -124,6 +124,7 @@ fn main() {
 		.add_startup_system(setup_player)
 		// Enemies
 		// .add_startup_system(spawn_boss)
+		.add_system(update_level_using_gems)
 		.add_system(spawn_random_enemy)
 		.add_system(unspawn_dead_mobs)
 		.add_system(run_wraith)

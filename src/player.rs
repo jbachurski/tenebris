@@ -81,6 +81,21 @@ pub fn update_cooldowns(
 	}
 }
 
+pub fn update_level_using_gems(mut players: Query<&mut Player>) {
+	for mut player in players.iter_mut() {
+		if player.level == 0 && player.gem_count >= 15 {
+			player.level = 1;
+			player.gem_count -= 15;
+		} else if player.level == 1 && player.gem_count >= 30 {
+			player.level = 2;
+			player.gem_count -= 30;
+		} else if player.level == 2 && player.gem_count >= 60 {
+			player.level = 3;
+			player.gem_count -= 60;
+		}
+	}
+}
+
 pub fn update_select(keyboard_input: Res<Input<KeyCode>>, mut players: Query<&mut Player>) {
 	if keyboard_input.just_pressed(KeyCode::Key1) {
 		for mut player in players.iter_mut() {
@@ -93,10 +108,6 @@ pub fn update_select(keyboard_input: Res<Input<KeyCode>>, mut players: Query<&mu
 	} else if keyboard_input.just_pressed(KeyCode::Key3) {
 		for mut player in players.iter_mut() {
 			player.select = PlayerWeaponSelect::Mine;
-		}
-	} else if keyboard_input.just_pressed(KeyCode::R) {
-		for mut player in players.iter_mut() {
-			player.level += 1;
 		}
 	}
 }
