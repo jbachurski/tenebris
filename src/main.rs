@@ -29,6 +29,7 @@ mod minimap;
 use minimap::*;
 
 mod mob;
+use mob::*;
 
 mod tilemap;
 
@@ -114,6 +115,7 @@ fn main() {
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
+		.add_system(mob_face_movement)
 		.run();
 }
 
