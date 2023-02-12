@@ -5,6 +5,7 @@ use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::mob::*;
+use crate::player::*;
 
 const GRADE_VECTORS: usize = 20;
 
@@ -135,11 +136,11 @@ fn best_heading<F: FnMut(Vec2) -> f32>(n: usize, mut grade: F) -> Vec2 {
 }
 
 pub fn run_skeleton(
-	cameras: Query<&Transform, With<Camera>>,
-	mut enemies: Query<(&Transform, &mut Velocity), (With<EnemySkeleton>, Without<Camera>)>,
+	players: Query<&Transform, With<Player>>,
+	mut enemies: Query<(&Transform, &mut Velocity), (With<EnemySkeleton>, Without<Player>)>,
 	mut lines: ResMut<DebugLines>,
 ) {
-	let camera_pos = cameras.single().translation;
+	let camera_pos = players.single().translation;
 	let enemy_positions: Vec<Vec2> = enemies.iter().map(|(t, _)| t.translation.xy()).collect();
 	for (enemy_tr, mut velocity) in enemies.iter_mut() {
 		let mut grade = |v: Vec2| {
@@ -170,11 +171,11 @@ pub fn run_skeleton(
 
 pub fn run_wraith(
 	time: Res<Time>,
-	cameras: Query<&Transform, With<Camera>>,
-	mut enemies: Query<(&Transform, &mut Velocity, &mut EnemyWraith), Without<Camera>>,
+	players: Query<&Transform, With<Player>>,
+	mut enemies: Query<(&Transform, &mut Velocity, &mut EnemyWraith), Without<Player>>,
 	mut lines: ResMut<DebugLines>,
 ) {
-	let camera_pos = cameras.single().translation;
+	let camera_pos = players.single().translation;
 	for (enemy_tr, mut velocity, mut wraith) in enemies.iter_mut() {
 		let angle_diff = Vec2::from_angle(wraith.angle).angle_between(camera_pos.xy() - enemy_tr.translation.xy());
 
@@ -195,10 +196,10 @@ pub fn run_wraith(
 
 pub fn run_goo(
 	time: Res<Time>,
-	cameras: Query<&Transform, With<Camera>>,
-	mut enemies: Query<(&mut Transform, &mut Velocity, &mut EnemyGoo), Without<Camera>>,
+	players: Query<&Transform, With<Player>>,
+	mut enemies: Query<(&mut Transform, &mut Velocity, &mut EnemyGoo), Without<Player>>,
 ) {
-	let camera_pos = cameras.single().translation;
+	let camera_pos = players.single().translation;
 	for (mut enemy_tr, mut velocity, mut goo) in enemies.iter_mut() {
 		let diff = camera_pos.xy() - enemy_tr.translation.xy();
 		enemy_tr.scale = Vec3::splat(1.0);
