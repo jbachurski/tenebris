@@ -1,7 +1,7 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_rapier2d::prelude::*;
 
-use super::{ranger::*, utils::*, wraith::*};
+use super::utils::*;
 use crate::{mob::*, player::*};
 
 enum EnemyGooState {
@@ -14,9 +14,7 @@ pub struct EnemyGoo {
 	state: EnemyGooState,
 }
 
-pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
-	spawn_rangers(&mut commands, &mut meshes, &mut materials);
-	spawn_wraiths(&mut commands, &mut meshes, &mut materials);
+pub fn spawn_goos(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>) {
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),

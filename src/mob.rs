@@ -13,7 +13,13 @@ pub struct CollidesWithWalls;
 
 #[derive(Component)]
 pub struct Mob {
-	pub health: u32,
+	pub health: i32,
+}
+
+#[derive(Component)]
+pub struct PlayerDanger {
+	pub damage: i32,
+	pub hit_despawn: bool,
 }
 
 pub fn projectile_hit_mobs(
@@ -26,7 +32,7 @@ pub fn projectile_hit_mobs(
 		for (mob_transform, mob_bound, mut mob) in mobs.iter_mut() {
 			let mob_rect = Rect::from_center_size(mob_transform.translation.xy(), mob_bound.size);
 			if !proj_rect.intersect(mob_rect).is_empty() {
-				mob.health = mob.health.saturating_sub(proj.damage);
+				mob.health = mob.health - proj.damage;
 				commands.entity(proj_entity).insert(Despawn);
 				break;
 			}
@@ -51,7 +57,7 @@ pub fn mob_face_movement(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocit
 
 pub fn unspawn_dead_mobs(mut commands: Commands, mobs: Query<(Entity, &Mob), Without<Player>>) {
 	for (entity, mob) in mobs.iter() {
-		if mob.health == 0 {
+		if mob.health <= 0 {
 			commands.entity(entity).insert(Despawn);
 		}
 	}

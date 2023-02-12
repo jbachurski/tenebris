@@ -5,7 +5,7 @@ use crate::{mob::*, player::*, Despawn};
 
 #[derive(Component)]
 pub struct Projectile {
-	pub damage: u32,
+	pub damage: i32,
 }
 
 #[derive(Component, Deref, DerefMut)]
