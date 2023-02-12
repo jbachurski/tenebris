@@ -3,6 +3,8 @@ use bevy_rapier2d::prelude::Velocity;
 
 use crate::{player::*, shooting::Projectile, Despawn};
 
+pub const VELOCITY_ERROR: f32 = 1.0; // Rangers keep moving a lot for some reason
+
 #[derive(Component)]
 pub struct Bounded {
 	pub size: Vec2, // Radius of the bounding box.
@@ -68,13 +70,25 @@ pub fn danger_hit_player(
 #[derive(Component)]
 pub struct SpriteFacingMovement;
 
-pub fn mob_face_movement(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocity), With<SpriteFacingMovement>>) {
+pub fn mob_face_movement_sprite_sheet(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocity), With<SpriteFacingMovement>>) {
 	for (mut sprite, velocity) in mob_query.iter_mut() {
 		// Want to avoid flipping when x = 0
-		if velocity.linvel.x < 0.0 {
+		if velocity.linvel.x < -VELOCITY_ERROR {
 			sprite.flip_x = true;
 		}
-		if velocity.linvel.x > 0.0 {
+		if velocity.linvel.x > VELOCITY_ERROR {
+			sprite.flip_x = false;
+		}
+	}
+}
+
+pub fn mob_face_movement_sprite(mut mob_query: Query<(&mut Sprite, &Velocity), With<SpriteFacingMovement>>) {
+	for (mut sprite, velocity) in mob_query.iter_mut() {
+		// Want to avoid flipping when x = 0
+		if velocity.linvel.x < -VELOCITY_ERROR {
+			sprite.flip_x = true;
+		}
+		if velocity.linvel.x > VELOCITY_ERROR {
 			sprite.flip_x = false;
 		}
 	}

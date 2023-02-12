@@ -1,4 +1,4 @@
-use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::*;
 
 use super::{utils::*, Enemy};
@@ -14,16 +14,10 @@ pub struct EnemyGoo {
 	state: EnemyGooState,
 }
 
-pub fn spawn_goo(
-	commands: &mut Commands,
-	meshes: &mut ResMut<Assets<Mesh>>,
-	materials: &mut ResMut<Assets<ColorMaterial>>,
-	position: Vec3,
-) {
+pub fn spawn_goo(commands: &mut Commands, asset_server: &mut Res<AssetServer>, position: Vec3) {
 	commands.spawn((
-		MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::BLUE)),
+		SpriteBundle {
+			texture: asset_server.load("slime.png"),
 			transform: Transform::from_translation(position),
 			..default()
 		},
@@ -43,6 +37,7 @@ pub fn spawn_goo(
 		CollidesWithWalls,
 		Collider::cuboid(12.0, 12.0),
 		Enemy,
+		SpriteFacingMovement,
 	));
 }
 
