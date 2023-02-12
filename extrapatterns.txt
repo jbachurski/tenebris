@@ -1,0 +1,54 @@
+(
+			[ // down left low
+				[O, X, X],
+				[O, O, T],
+				[O, O, T],
+				[T, T, T]
+			],
+			410
+		),
+		(
+			[ // down left mid
+				[O, X, X],
+				[O, X, X],
+				[O, O, T],
+				[O, O, T]
+			],
+			359
+		),
+		(
+			[ // down left high
+				[O, X, X],
+				[O, X, X],
+				[O, X, X],
+				[O, O, T],
+			],
+			308
+		),
+		(
+			[ // down right low
+				[X, X, O],
+				[T, O, O],
+				[T, O, O],
+				[T, T, T]
+			],
+			415
+		),
+		(
+			[ // down right mid
+				[X, X, O],
+				[X, X, O],
+				[T, O, O],
+				[O, O, O]
+			],
+			364
+		),
+		(
+			[ // down right high
+				[X, X, O],
+				[X, X, O],
+				[X, X, O],
+				[T, O, O],
+			],
+			313
+		),
