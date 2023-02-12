@@ -24,7 +24,7 @@ const BOSS_CHARGE_TO_CIRCLE: f32 = 3.0;
 const CIRCLE_ATTACK_TICK: f32 = 0.5;
 const CIRCLE_ATTACK_TICKS: u32 = 20;
 
-pub fn spawn_boss(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_boss(mut commands: &mut Commands, asset_server: &Res<AssetServer>) {
 	commands
 		.spawn(SpriteBundle {
 			texture: asset_server.load("spider.png"),

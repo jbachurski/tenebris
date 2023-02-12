@@ -65,7 +65,7 @@ fn setup_total_minimap(
 	// Make hearts on the top-left.
 	let heart_handle = asset_server.load("heart.png");
 
-	for i in 0..5 {
+	for i in 0..10 {
 		commands
 			.spawn(ImageBundle {
 				style: Style {
@@ -83,7 +83,7 @@ fn setup_total_minimap(
 			})
 			.insert(Visibility { is_visible: true })
 			.insert(PlayerHealthIndicator {
-				health_threshold: (MAX_HEALTH / 5) * (1 + i),
+				health_threshold: (MAX_HEALTH / 10) * (1 + i),
 			});
 	}
 

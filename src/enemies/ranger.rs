@@ -125,12 +125,12 @@ pub fn run_ranger(
 				.insert(PlayerDanger {
 					damage: 1,
 					hit_despawn: true,
-					til_despawn: 1.0,
+					til_despawn: 1.5,
 				})
 				.insert(Bounded { size: Vec2::splat(10.0) })
 				.insert(RigidBody::Dynamic)
 				.insert(Velocity {
-					linvel: (camera_pos - pos).normalize() * 300.0,
+					linvel: (camera_pos - pos).normalize() * 500.0,
 					angvel: 0.0,
 				});
 			ranger.ticks = 2.0;

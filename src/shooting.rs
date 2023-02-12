@@ -29,7 +29,10 @@ pub struct Crystal {
 }
 
 #[derive(Component)]
-pub struct Mine;
+pub struct Mine {
+	basevel: Vec2,
+	heading: Vec2,
+}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct ProjectileTimer(Timer);
@@ -54,19 +57,13 @@ pub fn player_shoot(
 	let (mut firebolt_timer, mut crystal_timer, mut mine_timer, player_transform, player_velocity, player) =
 		player_query.single_mut();
 
+	firebolt_timer.tick(time.delta());
+	crystal_timer.tick(time.delta());
+	mine_timer.tick(time.delta());
 	if match player.select {
-		PlayerWeaponSelect::Firebolt => {
-			firebolt_timer.tick(time.delta());
-			!firebolt_timer.finished()
-		},
-		PlayerWeaponSelect::Crystals => {
-			crystal_timer.tick(time.delta());
-			!crystal_timer.finished()
-		},
-		PlayerWeaponSelect::Mine => {
-			mine_timer.tick(time.delta());
-			!mine_timer.finished()
-		},
+		PlayerWeaponSelect::Firebolt => !firebolt_timer.finished(),
+		PlayerWeaponSelect::Crystals => !crystal_timer.finished(),
+		PlayerWeaponSelect::Mine => !mine_timer.finished(),
 	} {
 		return;
 	};
@@ -160,21 +157,53 @@ fn cast_spell(
 				},
 			));
 		},
+		PlayerWeaponSelect::Mine => {
+			let a = rand::thread_rng().gen_range(-TAU / 12.0..TAU / 12.0);
+			commands.spawn((
+				SpriteBundle {
+					texture: asset_server.load("fire_bolt.png"),
+					transform: *player_transform,
+					..default()
+				},
+				Velocity {
+					linvel: Vec2::ZERO,
+					angvel: 0.0,
+				},
+				Projectile { damage: 10 },
+				ProjectileTimer(Timer::from_seconds(MINE_LIFE, TimerMode::Once)),
+				Bounded { size: Vec2::splat(10.0) },
+				RigidBody::Dynamic,
+				LockedAxes::ROTATION_LOCKED,
+				Mine {
+					basevel: player_velocity.linvel,
+					heading: heading.rotate(Vec2::from_angle(a)),
+				},
+			));
+		},
 		PlayerWeaponSelect::Mine => {},
 	};
 }
 
-pub fn update_crystals_velocity(
-	time: Res<Time>,
-	mut players: Query<&Player>,
-	mut crystals: Query<(&mut ProjectileTimer, &mut Velocity, &Crystal)>,
-) {
-	let player = players.single();
+pub fn update_crystals_velocity(time: Res<Time>, mut crystals: Query<(&mut ProjectileTimer, &mut Velocity, &Crystal)>) {
 	for (mut timer, mut velocity, crystal) in crystals.iter_mut() {
 		timer.tick(time.delta());
 		let t = timer.remaining().as_secs_f32();
 		if t > 0.0 {
 			velocity.linvel = crystal.basevel + crystal.heading * (t / CRYSTAL_LIFE) * 15.0 * 60.0
+		}
+	}
+}
+
+pub fn update_mines_velocity(time: Res<Time>, mut mines: Query<(&mut ProjectileTimer, &mut Velocity, &Mine)>) {
+	for (mut timer, mut velocity, mine) in mines.iter_mut() {
+		timer.tick(time.delta());
+		let t = timer.remaining().as_secs_f32();
+		if t > 0.0 {
+			if t / MINE_LIFE > 0.9 {
+				velocity.linvel = (mine.basevel + mine.heading * 8.0 * 60.0) * ((t - MINE_LIFE * 0.9) / (MINE_LIFE * 0.1));
+			} else {
+				velocity.linvel = Vec2::ZERO;
+			}
 		}
 	}
 }

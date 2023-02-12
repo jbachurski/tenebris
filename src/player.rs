@@ -17,6 +17,7 @@ pub struct Player {
 	pub invincibility_seconds: f32,
 	pub gem_count: i32,
 	pub select: PlayerWeaponSelect,
+	pub level: u32,
 }
 
 impl Player {
@@ -25,7 +26,6 @@ impl Player {
 			self.health -= damage;
 			self.invincibility_seconds = 0.66;
 		}
-		println!("player health {}", self.health);
 	}
 }
 
@@ -173,6 +173,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			invincibility_seconds: 2.0,
 			gem_count: 0,
 			select: PlayerWeaponSelect::Firebolt,
+			level: 0,
 		},
 		Velocity::default(),
 		Acceleration {
