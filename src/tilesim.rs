@@ -194,14 +194,6 @@ impl Simulator {
 		return rand::thread_rng().gen_ratio(w, e + w);
 	}
 
-	pub fn toggle_campfire(&mut self, loc: UVec2) {
-		if self.grid.campfires.contains(&loc) {
-			self.remove_campfire(loc);
-		} else {
-			self.place_campfire(loc);
-		}
-	}
-
 	pub fn place_campfire(&mut self, loc: UVec2) {
 		self.grid.campfires.insert(loc);
 	}

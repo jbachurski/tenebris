@@ -3,6 +3,11 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{mob::*, player::*, Despawn};
 
+#[derive(Component)]
+pub struct Projectile {
+	pub damage: u32,
+}
+
 #[derive(Component, Deref, DerefMut)]
 pub struct ProjectileTimer(Timer);
 
@@ -67,7 +72,9 @@ fn shoot_projectile(
 			linvel: (cursor_position - player_transform.translation.truncate()).normalize() * 10.0 * 60.,
 			angvel: 0.0,
 		},
+		Projectile { damage: 1 },
 		ProjectileTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+		Bounded { size: Vec2::splat(16.0) },
 		RigidBody::Dynamic,
 		LockedAxes::ROTATION_LOCKED,
 	));

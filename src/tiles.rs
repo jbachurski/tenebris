@@ -15,6 +15,9 @@ pub struct Tile;
 #[derive(Component)]
 pub struct BackTile;
 
+#[derive(Component)]
+pub struct Structure;
+
 #[derive(Reflect, Clone, Debug, Resource, InspectorOptions, ExtractResource)]
 #[reflect(Resource, InspectorOptions)]
 pub struct TileManager {
@@ -71,6 +74,27 @@ pub fn spawn_tile(
 			..default()
 		})
 		.insert(BackTile);
+
+	// Check if campfire tile
+	if simulator.grid.campfires.contains(&tile_position) {
+		spawn_campfire_sprite(commands, atlases, tile_position);
+	}
+
+	// Check if other structure tile
+	if simulator.grid.structures.contains(&tile_position) {
+		spawn_campfire_sprite(commands, atlases, tile_position);
+	}
+}
+
+pub fn spawn_campfire_sprite(commands: &mut Commands, atlases: &Atlases, tile_position: UVec2) {
+	commands
+		.spawn(SpriteSheetBundle {
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			sprite: TextureAtlasSprite::new(0),
+			texture_atlas: atlases.campfire_atlas.clone(),
+			..default()
+		})
+		.insert(Structure);
 }
 
 pub fn spawn_tiles(
@@ -100,12 +124,13 @@ pub fn spawn_tiles(
 pub fn despawn_tiles(
 	mut commands: Commands,
 	tiles: Query<(Entity, &Transform), With<Tile>>,
-	mut back_tiles: Query<(Entity, &Transform), With<BackTile>>,
+	back_tiles: Query<(Entity, &Transform), With<BackTile>>,
+	structures: Query<(Entity, &Transform), With<Structure>>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut simulator: ResMut<Simulator>,
 ) {
 	for camera in cameras.iter() {
-		for (entity, transform) in tiles.iter().chain(back_tiles.iter()) {
+		for (entity, transform) in tiles.iter().chain(back_tiles.iter()).chain(structures.iter()) {
 			let position = transform.translation.xy();
 			let camera_tile_position = position_to_tile_position(&camera.translation.xy());
 			let tile_position = position_to_tile_position(&position);

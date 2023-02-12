@@ -96,13 +96,17 @@ pub fn update_velocity(
 pub fn animate_player_sprite(
 	time: Res<Time>,
 	texture_atlases: Res<Assets<TextureAtlas>>,
-	mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Handle<TextureAtlas>), With<Player>>,
+	mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Handle<TextureAtlas>, &Velocity), With<Player>>,
 ) {
-	for (mut timer, mut sprite, texture_atlas_handle) in &mut query {
+	for (mut timer, mut sprite, texture_atlas_handle, velocity) in &mut query {
 		timer.tick(time.delta());
 		if timer.just_finished() {
 			let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
-			sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
+			if (velocity.linvel.length() < 1e-5) {
+				sprite.index = 20
+			} else {
+				sprite.index = 20 + (i32::max(0, sprite.index as i32 - 19) as usize % 10);
+			}
 		}
 	}
 }
@@ -124,7 +128,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 			transform: Transform::from_translation(Vec3::new(3200.0, 3200.0, 2.0)),
 			..default()
 		},
-		AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+		AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
 		Bounded {
 			size: Vec2::new(32., 32.),
 		},
@@ -134,5 +138,6 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		Collider::cuboid(12.0, 12.0),
 		Ccd::enabled(),
 		LockedAxes::ROTATION_LOCKED,
+		SpriteFacingMovement,
 	));
 }
