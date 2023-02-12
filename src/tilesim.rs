@@ -69,7 +69,20 @@ impl Simulator {
 			.structures
 			.extend(poisson_disk_sample(&structure_choices, self.structure_dist as f32, self.n_structures).iter());
 
-		// TODO: Block out space for structures
+		for i in 0..self.width {
+			for j in 0..self.width {
+				let loc = UVec2::new(i, j);
+				if self
+					.grid
+					.structures
+					.iter()
+					.any(|sv| sv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
+				{
+					// Space near structures should be reserved
+					self.grid.is_wall[i as usize][j as usize] = false;
+				}
+			}
+		}
 	}
 
 	pub fn step(&mut self, player_pos: UVec2) {
@@ -181,7 +194,7 @@ impl Simulator {
 		return rand::thread_rng().gen_ratio(w, e + w);
 	}
 
-	fn toggle_campfire(&mut self, loc: UVec2) {
+	pub fn toggle_campfire(&mut self, loc: UVec2) {
 		if self.grid.campfires.contains(&loc) {
 			self.remove_campfire(loc);
 		} else {
@@ -189,15 +202,15 @@ impl Simulator {
 		}
 	}
 
-	fn place_campfire(&mut self, loc: UVec2) {
+	pub fn place_campfire(&mut self, loc: UVec2) {
 		self.grid.campfires.insert(loc);
 	}
 
-	fn remove_campfire(&mut self, loc: UVec2) {
+	pub fn remove_campfire(&mut self, loc: UVec2) {
 		self.grid.campfires.remove(&loc);
 	}
 
-	fn debug_output(&self) {
+	pub fn debug_output(&self) {
 		let mut cs = 0;
 		for i in 0..self.width {
 			for j in 0..self.width {

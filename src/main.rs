@@ -186,11 +186,15 @@ pub fn simulator_step(
 	minimap: Query<Entity, With<Minimap>>,
 	mut timer: ResMut<SimulatorTimer>,
 	time: Res<Time>,
+	keyboard_input: Res<Input<KeyCode>>,
 ) {
+	let player_trans = player.single().translation.truncate();
+	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
+	if (keyboard_input.just_pressed(KeyCode::E)) {
+		simulator.toggle_campfire(player_pos);
+	}
 	if timer.0.just_finished() {
-		let player_trans = player.single().translation.truncate();
-		let player_pos = position_to_tile_position(&player_trans);
 		simulator.step(player_pos);
 
 		// Process minimap
