@@ -195,7 +195,7 @@ pub fn simulator_step(
 			for (e, t) in structures.iter() {
 				let structure_trans = t.translation.truncate();
 				if position_to_tile_position(&structure_trans) == player_pos {
-					commands.entity(e).despawn();
+					commands.entity(e).insert(Despawn);
 				}
 			}
 		} else {
