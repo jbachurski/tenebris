@@ -33,55 +33,36 @@ fn best_heading<F: FnMut(Vec2) -> f32>(n: usize, mut grade: F) -> Vec2 {
 #[derive(Component)]
 pub struct EnemyRanger;
 
-pub fn spawn_rangers(
+pub fn spawn_ranger(
 	commands: &mut Commands,
 	meshes: &mut ResMut<Assets<Mesh>>,
 	materials: &mut ResMut<Assets<ColorMaterial>>,
+	position: Vec2,
 ) {
-	commands
-		.spawn(MaterialMesh2dBundle {
+	commands.spawn((
+		MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
 			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(Vec3::new(3200. + 50.0, 3200. + 100.0, 1.0)),
+			transform: Transform::from_translation(position.extend(1.0)),
 			..default()
-		})
-		.insert(EnemyRanger)
-		.insert(Bounded {
+		},
+		EnemyRanger,
+		Bounded {
 			size: Vec2::splat(2. * 20.),
-		})
-		.insert(Mob { health: 3 })
-		.insert(Velocity {
+		},
+		Mob { health: 3 },
+		Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
-		})
-		.insert(RigidBody::Dynamic)
-		.insert(LockedAxes::ROTATION_LOCKED)
-		.insert(CollidesWithWalls)
-		.insert(Collider::cuboid(12.0, 12.0));
-
-	commands
-		.spawn(MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-			transform: Transform::from_translation(Vec3::new(3200. + -20.0, 3200. + -100.0, 1.0)),
-			..default()
-		})
-		.insert(EnemyRanger)
-		.insert(Bounded {
-			size: Vec2::splat(2. * 20.),
-		})
-		.insert(Mob { health: 3 })
-		.insert(Velocity {
-			linvel: Vec2::ZERO,
-			angvel: 0.0,
-		})
-		.insert(RigidBody::Dynamic)
-		.insert(LockedAxes::ROTATION_LOCKED)
-		.insert(CollidesWithWalls)
-		.insert(Collider::cuboid(12.0, 12.0));
+		},
+		RigidBody::Dynamic,
+		LockedAxes::ROTATION_LOCKED,
+		CollidesWithWalls,
+		Collider::cuboid(12.0, 12.0),
+	));
 }
 
-pub fn run_skeleton(
+pub fn run_ranger(
 	players: Query<&Transform, With<Player>>,
 	mut enemies: Query<(&Transform, &mut Velocity), (With<EnemyRanger>, Without<Player>)>,
 	mut lines: ResMut<DebugLines>,
