@@ -59,7 +59,7 @@ fn main() {
 					window: WindowDescriptor {
 						width: SCREEN_DIMENSIONS.0,
 						height: SCREEN_DIMENSIONS.1,
-						title: "Tenebris".into(),
+						title: "Memorynth".into(),
 						resizable: false,
 						mode: WindowMode::Windowed,
 						..default()
