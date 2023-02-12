@@ -77,23 +77,6 @@ impl Simulator {
 		for i in 0..10 {
 			self.step();
 		}
-
-		// X X X X
-		// X . . X
-		// X . . X
-		// X X X X
-		self.grid.is_wall[3 + 100][3 + 100] = true;
-		self.grid.is_wall[3 + 100][3 + 101] = true;
-		self.grid.is_wall[3 + 100][3 + 102] = true;
-		self.grid.is_wall[3 + 100][3 + 103] = true;
-		self.grid.is_wall[3 + 101][3 + 103] = true;
-		self.grid.is_wall[3 + 102][3 + 103] = true;
-		self.grid.is_wall[3 + 103][3 + 103] = true;
-		self.grid.is_wall[3 + 103][3 + 102] = true;
-		self.grid.is_wall[3 + 103][3 + 101] = true;
-		self.grid.is_wall[3 + 103][3 + 100] = true;
-		self.grid.is_wall[3 + 102][3 + 100] = true;
-		self.grid.is_wall[3 + 101][3 + 100] = true;
 	}
 
 	pub fn step(&mut self) {
