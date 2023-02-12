@@ -132,6 +132,7 @@ fn main() {
 		.add_system(player_shoot)
 		.add_system(tick_down_player_invincibility)
 		.add_system(danger_hit_player)
+		.add_system(update_cooldowns)
 		.add_system(update_crystals_velocity)
 		.add_system(update_mines_velocity)
 		.add_system(despawn_old_projectiles)

@@ -94,6 +94,10 @@ pub fn update_select(keyboard_input: Res<Input<KeyCode>>, mut players: Query<&mu
 		for mut player in players.iter_mut() {
 			player.select = PlayerWeaponSelect::Mine;
 		}
+	} else if keyboard_input.just_pressed(KeyCode::R) {
+		for mut player in players.iter_mut() {
+			player.level += 1;
+		}
 	}
 }
 
