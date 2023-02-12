@@ -4,7 +4,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, render::extract_resource::ExtractReso
 use bevy_inspector_egui::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{assets::Atlases, tilemap::*, tilesim::Simulator, utils::*};
+use crate::{assets::Atlases, tilemap::*, tilesim::Simulator, utils::*, Despawn};
 
 pub const TILE_SIZE: f32 = 32.;
 pub const FOG_RADIUS: u32 = 17;
@@ -115,12 +115,12 @@ pub fn despawn_tiles(
 				|| tile_position.y > camera_tile_position.y.saturating_add(FOG_RADIUS)
 			{
 				simulator.grid.spawned_tiles.remove(&tile_position);
-				commands.entity(entity).despawn();
+				commands.entity(entity).insert(Despawn);
 			}
 		}
 	}
 	for entity in back_tiles.iter() {
-		commands.entity(entity).despawn();
+		commands.entity(entity).insert(Despawn);
 	}
 }
 

@@ -4,8 +4,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::mob::*;
-use crate::player::*;
+use crate::{mob::*, player::*};
 
 const GRADE_VECTORS: usize = 20;
 
