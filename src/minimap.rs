@@ -3,7 +3,7 @@ use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
 	tilesim::Simulator,
-	utils::{MAP_RADIUS, MINIMAP_SIZE},
+	utils::{DEBUG_OMNISCIENCE, MAP_RADIUS, MINIMAP_SIZE},
 };
 
 pub struct MinimapPlugin;
@@ -46,7 +46,7 @@ fn update_total_minimap(total_minimap: Res<TotalMinimap>, simulator: Res<Simulat
 	if let Some(image) = assets.get_mut(&total_minimap.handle) {
 		let mut image_buffer = ImageBuffer::new(MAP_RADIUS * 2, MAP_RADIUS * 2);
 		for (x, y, p) in image_buffer.enumerate_pixels_mut() {
-			if simulator.grid.reality_bubble.contains(&UVec2::new(x, MAP_RADIUS * 2 - y - 1)) {
+			if DEBUG_OMNISCIENCE || simulator.grid.reality_bubble.contains(&UVec2::new(x, MAP_RADIUS * 2 - y - 1)) {
 				*p = get_minimap_color_but_better(&simulator, x, MAP_RADIUS * 2 - y - 1);
 			} else {
 				*p = Rgba([102, 102, 255, 25]);

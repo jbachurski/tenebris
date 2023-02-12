@@ -76,10 +76,15 @@ impl Simulator {
 			self.grid.structures.insert(*pos, StructureType::Unspawned);
 		}
 		self.grid.structures.insert(self.world_center(), StructureType::SpawnTutorial);
+		self.grid.structures.insert(self.boss_room_loc(), StructureType::BossAltar);
 
 		for i in 0..self.width {
 			for j in 0..self.width {
 				let loc = UVec2::new(i, j);
+				let dist_from_center = self.world_center().as_vec2().distance(loc.as_vec2());
+				if dist_from_center > self.radii.1 as f32 {
+					continue;
+				}
 				if self
 					.grid
 					.structures
@@ -87,6 +92,12 @@ impl Simulator {
 					.any(|(sv, _)| sv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
 				{
 					// Space near structures should be reserved
+					self.grid.is_wall[i as usize][j as usize] = false;
+				}
+
+				// Special boss room
+				let dist_from_boss_room = self.boss_room_loc().as_vec2().distance(loc.as_vec2());
+				if dist_from_boss_room < self.boss_room_radius as f32 {
 					self.grid.is_wall[i as usize][j as usize] = false;
 				}
 			}
@@ -117,6 +128,7 @@ impl Simulator {
 			let (i, j) = ac.into();
 			self.grid.reality_bubble.remove(&ac);
 			if !self.protected(ac) {
+				assert!(self.boss_room_loc().as_vec2().distance(ac.as_vec2()) >= self.boss_room_radius as f32);
 				self.grid.is_wall[i as usize][j as usize] = self.calc_new_cell(ac);
 			}
 		}
@@ -133,14 +145,10 @@ impl Simulator {
 		// Update available_cells
 		if dist < outerrad && !self.grid.reality_bubble.contains(&loc) {
 			self.grid.reality_bubble.insert(loc);
+			let boss_room_loc = self.boss_room_loc();
 			// If structure, assign it a random value
 			self.grid.structures.get_mut(&loc).map(|v| {
-				*v = match thread_rng().gen_range(0..=2) {
-					0 => StructureType::Remember,
-					1 => StructureType::BewareSpider,
-					2 => StructureType::Altar,
-					_ => panic!(),
-				};
+				*v = decide_structure_type(boss_room_loc, loc);
 			});
 		}
 		// If loc between inner_rad and outer_rad
@@ -190,10 +198,20 @@ impl Simulator {
 			return true;
 		}
 		// Check if cell is within structure_radius of other structures
-		self.grid
+		if self
+			.grid
 			.structures
 			.iter()
 			.any(|(uv, _)| uv.as_vec2().distance(loc.as_vec2()) <= self.structure_radius as f32)
+		{
+			return true;
+		}
+
+		// Check if cell is close to boss room
+		if self.boss_room_loc().as_vec2().distance(loc.as_vec2()) < self.boss_room_radius as f32 {
+			return true;
+		}
+		return false;
 	}
 
 	fn calc_new_cell(&self, loc: UVec2) -> bool {
@@ -213,6 +231,10 @@ impl Simulator {
 
 	fn world_center(&self) -> UVec2 {
 		return UVec2::new(self.width / 2, self.width / 2);
+	}
+
+	pub fn boss_room_loc(&self) -> UVec2 {
+		return self.world_center() + UVec2::new(0, self.radii.1 - 6);
 	}
 
 	pub fn place_campfire(&mut self, loc: UVec2) {
