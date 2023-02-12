@@ -100,7 +100,7 @@ pub fn spawn_structure_sprite(
 ) {
 	commands
 		.spawn(SpriteBundle {
-			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.6),
 			texture: get_structure_texture(structure_type, asset_server),
 			..default()
 		})
@@ -110,7 +110,7 @@ pub fn spawn_structure_sprite(
 pub fn spawn_campfire_sprite(commands: &mut Commands, atlases: &Atlases, tile_position: UVec2) {
 	commands
 		.spawn(SpriteSheetBundle {
-			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.6),
 			sprite: TextureAtlasSprite::new(0),
 			texture_atlas: atlases.campfire_atlas.clone(),
 			..default()

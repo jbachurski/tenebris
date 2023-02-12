@@ -62,7 +62,7 @@ impl Simulator {
 			.flat_map(|i| (1usize..self.width as usize).map(move |j| (i, j)))
 			.filter(|(i, j)| {
 				!self.grid.is_wall[*i][*j]
-					&& Vec2::new(*i as f32, *j as f32).distance(self.world_center().as_vec2()) > self.radii.0 as f32
+					&& Vec2::new(*i as f32, *j as f32).distance(self.world_center().as_vec2()) > self.reality_params.1 as f32
 			})
 			.map(|(i, j)| UVec2::new(i as u32, j as u32))
 			.collect();

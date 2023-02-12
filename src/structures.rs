@@ -13,6 +13,6 @@ pub fn get_structure_texture(structure_type: &StructureType, asset_server: &Asse
 		StructureType::Remember => asset_server.load("grounddeco1.png"),
 		StructureType::BewareSpider => asset_server.load("grounddeco2.png"),
 		StructureType::Altar => asset_server.load("tutorial.png"), // TODO: Change to altar sprite
-		_ => panic!(),
+		_ => panic!("Tried to get the asset for a structure that does not exist. Is the outer reality bubble too small?"),
 	}
 }
