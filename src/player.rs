@@ -4,7 +4,25 @@ use bevy_rapier2d::prelude::*;
 use crate::mob::*;
 
 #[derive(Component)]
-pub struct Player;
+pub struct Player {
+	pub health: i32,
+	pub invincibility_seconds: f32,
+}
+
+impl Player {
+	pub fn take_damage(self: &mut Self, damage: i32) {
+		if self.invincibility_seconds <= 0.0 {
+			self.health -= damage;
+		}
+		println!("player health {}", self.health);
+	}
+}
+
+pub fn tick_down_player_invincibility(time: Res<Time>, mut players: Query<(&mut Player)>) {
+	for mut player in players.iter_mut() {
+		player.invincibility_seconds -= time.delta().as_secs_f32();
+	}
+}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
@@ -117,7 +135,10 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 	let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
 	commands.spawn((
-		Player,
+		Player {
+			health: 20,
+			invincibility_seconds: 2.0,
+		},
 		Velocity::default(),
 		Acceleration {
 			max_velocity: 10.0 * 60.,

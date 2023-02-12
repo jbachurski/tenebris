@@ -100,6 +100,7 @@ fn main() {
 		.add_system(update_velocity)
 		.add_system(animate_player_sprite)
 		.add_system(player_shoot)
+		.add_system(tick_down_player_invincibility)
 		.add_system(despawn_old_projectiles)
 		.add_system(spawn_tiles)
 		.add_system(despawn_tiles)

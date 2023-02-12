@@ -25,17 +25,36 @@ pub struct PlayerDanger {
 pub fn projectile_hit_mobs(
 	mut commands: Commands,
 	mut projectiles: Query<(Entity, &Transform, &Bounded, &Projectile)>,
-	mut mobs: Query<(&Transform, &Bounded, &mut Mob), Without<Player>>,
+	mut mobs: Query<(&Transform, &Bounded, &mut Mob)>,
 ) {
 	for (proj_entity, proj_transform, proj_bound, proj) in projectiles.iter_mut() {
 		let proj_rect = Rect::from_center_size(proj_transform.translation.xy(), proj_bound.size);
 		for (mob_transform, mob_bound, mut mob) in mobs.iter_mut() {
 			let mob_rect = Rect::from_center_size(mob_transform.translation.xy(), mob_bound.size);
 			if !proj_rect.intersect(mob_rect).is_empty() {
-				mob.health = mob.health - proj.damage;
+				mob.health -= proj.damage;
 				commands.entity(proj_entity).insert(Despawn);
 				break;
 			}
+		}
+	}
+}
+
+pub fn danger_hit_player(
+	mut commands: Commands,
+	mobs: Query<(Entity, &Transform, &Bounded, &PlayerDanger), Without<Player>>,
+	mut players: Query<(&Transform, &Bounded, &mut Player)>,
+) {
+	let (transform, bound, player) = players.single();
+	let rect = Rect::from_center_size(transform.translation.xy(), bound.size);
+	for (entity, mob_transform, mob_bound, danger) in mobs.iter() {
+		let mob_rect = Rect::from_center_size(mob_transform.translation.xy(), mob_bound.size);
+		if !rect.intersect(mob_rect).is_empty() {
+			println!("Damage player for {}", danger.damage);
+			if danger.hit_despawn {
+				commands.entity(entity).insert(Despawn);
+			}
+			break;
 		}
 	}
 }
