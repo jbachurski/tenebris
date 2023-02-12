@@ -29,6 +29,9 @@ use tiles::*;
 mod shooting;
 use shooting::*;
 
+mod minimap;
+use minimap::*;
+
 mod mob;
 use mob::*;
 
@@ -121,15 +124,35 @@ fn setup(
 ) {
 	setup_camera(&mut commands);
 
-	// Spawn a test entity at the origin.
-	commands.spawn(SpriteBundle {
-		texture: asset_server.load("test.png"),
-		transform: Transform {
-			translation: Vec3::new(0.0, 0.0, 2.0),
-			..Default::default()
-		},
-		..default()
-	});
+	// Spawn a UI
+	commands
+		.spawn(NodeBundle {
+			style: Style {
+				size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+				justify_content: JustifyContent::SpaceBetween,
+				..default()
+			},
+			..default()
+		})
+		.with_children(|parent| {
+			parent
+				.spawn(NodeBundle {
+					style: Style {
+						size: Size::new(Val::Px(MINIMAP_SIZE), Val::Px(MINIMAP_SIZE)),
+						position_type: PositionType::Absolute,
+						position: UiRect {
+							right: Val::Px(10.0),
+							top: Val::Px(10.0),
+							..default()
+						},
+						//border: UiRect::all(Val::Px(20.0)),
+						..default()
+					},
+					background_color: Color::rgba(0.4, 0.4, 1.0, 0.1).into(),
+					..default()
+				})
+				.insert(Minimap);
+		});
 
 	// Create a texture atlas for cave.
 	atlases.cave_atlas_simple = texture_atlases.add(TextureAtlas::from_grid(
@@ -338,8 +361,10 @@ pub fn spawn_tiles(
 }
 
 pub fn simulator_step(
+	mut commands: Commands,
 	mut simulator: ResMut<Simulator>,
 	mut player: Query<&Transform, With<Player>>,
+	mut minimap: Query<Entity, With<Minimap>>,
 	mut timer: ResMut<SimulatorTimer>,
 	time: Res<Time>,
 ) {
@@ -348,6 +373,34 @@ pub fn simulator_step(
 		let player_trans = player.single().translation.truncate();
 		let player_pos = position_to_tile_position(&player_trans);
 		simulator.step(player_pos);
+
+		// Process minimap
+		let minimap_entity = minimap.single();
+		commands.entity(minimap_entity).despawn_descendants();
+		commands.entity(minimap_entity).insert(Minimap).with_children(|parent| {
+			let elem_width = MINIMAP_SIZE / (2.0 * MAP_RADIUS as f32);
+			for i in 0..MAP_RADIUS * 2 {
+				for j in 0..MAP_RADIUS * 2 {
+					let loc = UVec2::new(i, j);
+					if simulator.grid.reality_bubble.contains(&loc) {
+						parent.spawn(NodeBundle {
+							style: Style {
+								size: Size::new(Val::Px(elem_width), Val::Px(elem_width)),
+								position_type: PositionType::Absolute,
+								position: UiRect {
+									left: Val::Px(elem_width * i as f32),
+									bottom: Val::Px(elem_width * j as f32),
+									..default()
+								},
+								..default()
+							},
+							background_color: get_minimap_color(&simulator, i, j),
+							..default()
+						});
+					}
+				}
+			}
+		});
 	}
 }
 
