@@ -43,7 +43,6 @@ pub fn spawn_boss(mut commands: Commands, asset_server: Res<AssetServer>) {
 		.insert(Bounded {
 			size: Vec2::splat(2. * 30.),
 		})
-		.insert(Mob { health: 10 })
 		.insert(RigidBody::Fixed)
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
