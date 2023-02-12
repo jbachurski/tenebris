@@ -60,6 +60,7 @@ pub fn spawn_tile(
 		})
 		.insert(RigidBody::Fixed)
 		.insert(Velocity::default())
+		.insert(Collider::cuboid(16., 16.))
 		.insert(Sensor)
 		.insert(Tile);
 	commands
@@ -119,11 +120,20 @@ pub fn despawn_tiles(
 	}
 }
 
-pub fn update_tiles(mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>, simulator: ResMut<Simulator>) {
-	for (_entity, transform, mut ta_sprite) in tiles.iter_mut() {
+pub fn update_tiles(
+	mut commands: Commands,
+	mut tiles: Query<(Entity, &Transform, &mut TextureAtlasSprite), With<Tile>>,
+	simulator: ResMut<Simulator>,
+) {
+	for (entity, transform, mut ta_sprite) in tiles.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		if simulator.grid.spawned_tiles.contains(&tile_position) {
 			*ta_sprite = TextureAtlasSprite::new(tile_atlas_index(&simulator, tile_position));
+			if simulator.grid.is_wall[tile_position.x as usize][tile_position.y as usize] {
+				commands.entity(entity).remove::<Sensor>();
+			} else {
+				commands.entity(entity).insert(Sensor);
+			}
 		}
 	}
 }
