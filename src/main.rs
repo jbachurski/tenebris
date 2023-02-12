@@ -108,6 +108,8 @@ fn main() {
 		.add_system(run_skeleton)
 		.add_system(run_wraith)
 		.add_system(run_goo)
+		.add_system(projectile_hit_mobs)
+		.add_system(unspawn_dead_mobs)
 		//.add_system(move_by_velocity)
 		//.add_system(resolve_collisions.before(move_by_velocity))
 		.add_system(simulator_step)
