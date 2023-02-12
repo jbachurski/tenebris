@@ -24,7 +24,7 @@ const BOSS_CHARGE_TO_CIRCLE: f32 = 3.0;
 const CIRCLE_ATTACK_TICK: f32 = 0.5;
 const CIRCLE_ATTACK_TICKS: u32 = 20;
 
-pub fn spawn_boss(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>) {
+pub fn spawn_boss(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(35., 4).into()).into(),
