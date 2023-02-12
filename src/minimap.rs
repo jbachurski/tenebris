@@ -2,7 +2,7 @@ use bevy::{prelude::*, render::render_resource::TextureFormat};
 use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{
-	player::Player,
+	player::{Player, MAX_HEALTH},
 	tilesim::Simulator,
 	utils::{DEBUG_OMNISCIENCE, MAP_RADIUS, MINIMAP_SIZE},
 };
@@ -13,7 +13,8 @@ impl Plugin for MinimapPlugin {
 	fn build(&self, app: &mut App) {
 		app.init_resource::<TotalMinimap>()
 			.add_startup_system(setup_total_minimap)
-			.add_system(update_total_minimap);
+			.add_system(update_total_minimap)
+			.add_system(update_player_health_indicators);
 	}
 }
 
@@ -54,96 +55,28 @@ fn setup_total_minimap(
 
 	let heart_handle = asset_server.load("heart.png");
 
-	// Make three hearts on the side.
-	commands
-		.spawn(ImageBundle {
-			style: Style {
-				size: Size::new(Val::Px(32.), Val::Px(32.)),
-				position_type: PositionType::Absolute,
-				position: UiRect {
-					left: Val::Px(10.0 + 16. * 0.),
-					top: Val::Px(10.0),
+	for i in 0..5 {
+		// Make three hearts on the side.
+		commands
+			.spawn(ImageBundle {
+				style: Style {
+					size: Size::new(Val::Px(32. * 2.), Val::Px(32. * 2.)),
+					position_type: PositionType::Absolute,
+					position: UiRect {
+						left: Val::Px(10.0 + 32. * (i as f32)),
+						top: Val::Px(10.0),
+						..default()
+					},
 					..default()
 				},
+				image: UiImage(heart_handle.clone()),
 				..default()
-			},
-			image: UiImage(heart_handle.clone()),
-			..default()
-		})
-		.insert(Visibility { is_visible: true })
-		.insert(PlayerHealthIndicator { health_threshold: 4 });
-
-	commands
-		.spawn(ImageBundle {
-			style: Style {
-				size: Size::new(Val::Px(32.), Val::Px(32.)),
-				position_type: PositionType::Absolute,
-				position: UiRect {
-					left: Val::Px(10.0 + 16. * 1.),
-					top: Val::Px(10.0),
-					..default()
-				},
-				..default()
-			},
-			image: UiImage(heart_handle.clone()),
-			..default()
-		})
-		.insert(Visibility { is_visible: true })
-		.insert(PlayerHealthIndicator { health_threshold: 8 });
-
-	commands
-		.spawn(ImageBundle {
-			style: Style {
-				size: Size::new(Val::Px(32.), Val::Px(32.)),
-				position_type: PositionType::Absolute,
-				position: UiRect {
-					left: Val::Px(10.0 + 16. * 2.),
-					top: Val::Px(10.0),
-					..default()
-				},
-				..default()
-			},
-			image: UiImage(heart_handle.clone()),
-			..default()
-		})
-		.insert(Visibility { is_visible: true })
-		.insert(PlayerHealthIndicator { health_threshold: 12 });
-
-	commands
-		.spawn(ImageBundle {
-			style: Style {
-				size: Size::new(Val::Px(32.), Val::Px(32.)),
-				position_type: PositionType::Absolute,
-				position: UiRect {
-					left: Val::Px(10.0 + 16. * 3.),
-					top: Val::Px(10.0),
-					..default()
-				},
-				..default()
-			},
-			image: UiImage(heart_handle.clone()),
-			..default()
-		})
-		.insert(Visibility { is_visible: true })
-		.insert(PlayerHealthIndicator { health_threshold: 16 });
-
-	commands
-		.spawn(ImageBundle {
-			style: Style {
-				size: Size::new(Val::Px(32.), Val::Px(32.)),
-				position_type: PositionType::Absolute,
-				position: UiRect {
-					left: Val::Px(10.0 + 16. * 4.),
-					top: Val::Px(10.0),
-					..default()
-				},
-				..default()
-			},
-			image: UiImage(heart_handle.clone()),
-			..default()
-		})
-		.insert(Visibility { is_visible: true })
-		.insert(PlayerHealthIndicator { health_threshold: 20 });
+			})
+			.insert(Visibility { is_visible: true })
+			.insert(PlayerHealthIndicator {
+				health_threshold: (MAX_HEALTH / 5) * (1 + i),
+			});
+	}
 }
 
 fn update_player_health_indicators(players: Query<&Player>, mut indicators: Query<(&mut Visibility, &PlayerHealthIndicator)>) {
@@ -154,10 +87,10 @@ fn update_player_health_indicators(players: Query<&Player>, mut indicators: Quer
 	}
 
 	for (mut visibility, indicator) in indicators.iter_mut() {
-		visibility.is_visible = if indicator.health_threshold < player_health {
-			false
-		} else {
+		visibility.is_visible = if indicator.health_threshold <= player_health {
 			true
+		} else {
+			false
 		};
 	}
 }

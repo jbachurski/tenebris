@@ -3,6 +3,8 @@ use bevy_rapier2d::prelude::*;
 
 use crate::mob::*;
 
+pub const MAX_HEALTH: i32 = 20;
+
 #[derive(Component)]
 pub struct Player {
 	pub health: i32,
@@ -136,7 +138,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 
 	commands.spawn((
 		Player {
-			health: 20,
+			health: MAX_HEALTH,
 			invincibility_seconds: 2.0,
 		},
 		Velocity::default(),
