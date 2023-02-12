@@ -191,19 +191,7 @@ pub fn update_lightmap(
 	for (entity, transform) in overlays.iter_mut() {
 		let tile_position = position_to_tile_position(&transform.translation.xy());
 		let (i, j) = tile_position.into();
-		commands.entity(entity).despawn();
-		/*
-		commands
-			.spawn(SpriteBundle {
-				transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 10.),
-				sprite: Sprite {
-					color: Color::rgba(0., 0., 0., 1.-simulator.grid.lightmap[i as usize][j as usize]),
-					custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
-					..default()
-				},
-				..default()
-			}).insert(Overlay);
-			*/
+		commands.entity(entity).insert(Despawn);
 	}
 
 	for camera in cameras.iter() {
