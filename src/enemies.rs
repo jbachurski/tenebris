@@ -31,6 +31,8 @@ pub fn spawn_random_enemy(
 	mut commands: Commands,
 	mut meshes: ResMut<Assets<Mesh>>,
 	mut materials: ResMut<Assets<ColorMaterial>>,
+	mut asset_server: Res<AssetServer>,
+	mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 	mut spawner: ResMut<EnemySpawner>,
 	time: Res<Time>,
 	simulator: Res<Simulator>,
@@ -58,9 +60,9 @@ pub fn spawn_random_enemy(
 		let rand_z: f32 = rng.gen();
 		let position = spawn_position.extend(1.0 + rand_z);
 		match rng.gen_range(0..3) {
-			0 => spawn_ranger(&mut commands, &mut meshes, &mut materials, position),
-			1 => spawn_wraith(&mut commands, &mut meshes, &mut materials, position),
-			_ => spawn_goo(&mut commands, &mut meshes, &mut materials, position),
+			0 => spawn_ranger(&mut commands, &mut asset_server, &mut texture_atlases, position),
+			1 => spawn_wraith(&mut commands, &mut asset_server, position),
+			_ => spawn_goo(&mut commands, &mut asset_server, position),
 		}
 	}
 }

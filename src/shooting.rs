@@ -1,5 +1,8 @@
+use std::f32::consts::TAU;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::Rng;
 
 use crate::{mob::*, player::*, Despawn};
 
@@ -135,14 +138,15 @@ fn cast_spell(
 			));
 		},
 		PlayerWeaponSelect::Crystals => {
+			let a = rand::thread_rng().gen_range(-TAU / 12.0..TAU / 12.0);
 			commands.spawn((
 				SpriteBundle {
-					texture: asset_server.load("fire_bolt.png"),
+					texture: asset_server.load("crystal.png"),
 					transform: *player_transform,
 					..default()
 				},
 				Velocity {
-					linvel: player_velocity.linvel,
+					linvel: Vec2::ZERO,
 					angvel: 0.0,
 				},
 				Projectile { damage: 1 },
@@ -152,7 +156,7 @@ fn cast_spell(
 				LockedAxes::ROTATION_LOCKED,
 				Crystal {
 					basevel: player_velocity.linvel,
-					heading,
+					heading: heading.rotate(Vec2::from_angle(a)),
 				},
 			));
 		},
@@ -170,7 +174,7 @@ pub fn update_crystals_velocity(
 		timer.tick(time.delta());
 		let t = timer.remaining().as_secs_f32();
 		if t > 0.0 {
-			velocity.linvel = crystal.basevel + crystal.heading * (t / CRYSTAL_LIFE) * 12.0 * 60.0
+			velocity.linvel = crystal.basevel + crystal.heading * (t / CRYSTAL_LIFE) * 15.0 * 60.0
 		}
 	}
 }

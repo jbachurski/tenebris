@@ -24,18 +24,18 @@ const BOSS_CHARGE_TO_CIRCLE: f32 = 3.0;
 const CIRCLE_ATTACK_TICK: f32 = 0.5;
 const CIRCLE_ATTACK_TICKS: u32 = 20;
 
-pub fn spawn_boss(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
+pub fn spawn_boss(mut commands: Commands, asset_server: Res<AssetServer>) {
 	commands
-		.spawn(MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(35., 4).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::RED)),
-			transform: Transform::from_translation(Vec3::new(3200. + 500.0, 3200. + 500.0, 2.0)),
+		.spawn(SpriteBundle {
+			texture: asset_server.load("spider.png"),
+			transform: Transform::from_translation(Vec3::new(3200. + 500.0, 3200. + 500.0, 2.0))
+				.with_scale(Vec3::new(3.0, 3.0, 1.0)),
 			..default()
 		})
 		.insert(EnemyBoss {
 			state: BossState::Waiting(BOSS_WAIT_TO_TELEPORT),
 		})
-		.insert(Mob { health: 3 })
+		.insert(Mob { health: 300 })
 		.insert(Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
@@ -48,20 +48,18 @@ pub fn spawn_boss(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut 
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
 		.insert(Collider::cuboid(24.0, 24.0))
-		.insert(Dominance::group(10));
+		.insert(Dominance::group(10))
+		.insert(PlayerDanger {
+			damage: 1,
+			hit_despawn: false,
+			til_despawn: f32::INFINITY,
+		});
 }
 
-pub fn boss_shoot(
-	commands: &mut Commands,
-	meshes: &mut ResMut<Assets<Mesh>>,
-	materials: &mut ResMut<Assets<ColorMaterial>>,
-	source: Vec2,
-	angle: f32,
-) {
+pub fn boss_shoot(commands: &mut Commands, asset_server: &Res<AssetServer>, source: Vec2, angle: f32) {
 	commands
-		.spawn(MaterialMesh2dBundle {
-			mesh: meshes.add(shape::RegularPolygon::new(10., 8).into()).into(),
-			material: materials.add(ColorMaterial::from(Color::PURPLE)),
+		.spawn(SpriteBundle {
+			texture: asset_server.load("cobweb.png"),
 			transform: Transform::from_translation(source.extend(2.0)),
 			..default()
 		})
@@ -81,8 +79,7 @@ pub fn boss_shoot(
 pub fn run_boss(
 	time: Res<Time>,
 	mut commands: Commands,
-	mut meshes: ResMut<Assets<Mesh>>,
-	mut materials: ResMut<Assets<ColorMaterial>>,
+	asset_server: Res<AssetServer>,
 	mut simulator: ResMut<Simulator>,
 	players: Query<&Transform, With<Player>>,
 	mut bosses: Query<(&mut Transform, &mut Velocity, &mut EnemyBoss), Without<Player>>,
@@ -119,14 +116,13 @@ pub fn run_boss(
 						velocity.linvel = Vec2::ZERO;
 						let mut rng = rand::thread_rng();
 						for _ in 0..5 {
-							boss_shoot(&mut commands, &mut meshes, &mut materials, new_pos, rng.gen_range(0.0..TAU));
+							boss_shoot(&mut commands, &asset_server, new_pos, rng.gen_range(0.0..TAU));
 						}
 						for _ in 0..3 {
 							let a = Vec2::new(1.0, 0.0).angle_between(player_pos - new_pos);
 							boss_shoot(
 								&mut commands,
-								&mut meshes,
-								&mut materials,
+								&asset_server,
 								new_pos,
 								a + rng.gen_range(-TAU / 24.0..TAU / 24.0),
 							);
@@ -162,13 +158,7 @@ pub fn run_boss(
 					};
 					for i in 0..16 {
 						let a = Vec2::new(1.0, 0.0).angle_between(player_pos - pos);
-						boss_shoot(
-							&mut commands,
-							&mut meshes,
-							&mut materials,
-							pos,
-							(i as f32) * TAU / (circle_lines as f32),
-						);
+						boss_shoot(&mut commands, &asset_server, pos, (i as f32) * TAU / (circle_lines as f32));
 					}
 					if steps == 0 {
 						BossState::Waiting(BOSS_WAIT_TO_TELEPORT)

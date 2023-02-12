@@ -116,6 +116,7 @@ fn main() {
 		.add_system(despawn_tiles)
 		.add_system(update_tiles)
 		.add_system(run_ranger)
+		.add_system(animate_ranger_sprite)
 		.add_system(run_wraith)
 		.add_system(run_goo)
 		.add_system(run_boss)
@@ -129,7 +130,8 @@ fn main() {
 		.add_stage_after(CoreStage::Update, DESPAWN_STAGE, SystemStage::single_threaded())
 		.add_system_to_stage(DESPAWN_STAGE, despawn)
 		.add_system_to_stage(CoreStage::PostUpdate, update_camera)
-		.add_system(mob_face_movement)
+		.add_system(mob_face_movement_sprite_sheet)
+		.add_system(mob_face_movement_sprite)
 		.add_system(despawn_far_enemies)
 		.run();
 }
@@ -193,7 +195,7 @@ pub fn simulator_step(
 			for (e, t) in structures.iter() {
 				let structure_trans = t.translation.truncate();
 				if position_to_tile_position(&structure_trans) == player_pos {
-					commands.entity(e).despawn();
+					commands.entity(e).insert(Despawn);
 				}
 			}
 		} else {
