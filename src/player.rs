@@ -11,7 +11,7 @@ pub enum PlayerWeaponSelect {
 	Crystals,
 	Mine,
 }
-pub const MAX_HEALTH: i32 = 20;
+pub const MAX_HEALTH: i32 = 60;
 
 #[derive(Component)]
 pub struct Player {

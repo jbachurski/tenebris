@@ -66,7 +66,7 @@ fn main() {
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(EnemySpawner {
 			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-			max_enemy_count: 8,
+			max_enemy_count: 4,
 		})
 		.add_plugins(
 			DefaultPlugins
@@ -109,7 +109,7 @@ fn main() {
 			15,
 			(20, 30),
 			10,
-			60,
+			10,
 			20,
 			5,
 			20,
@@ -119,7 +119,7 @@ fn main() {
 		.insert_resource(Msaa { samples: 1 })
 		.insert_resource(EnemySpawner {
 			timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-			max_enemy_count: 8,
+			max_enemy_count: 4,
 		})
 		.add_plugin(MinimapPlugin)
 		// Startup Systems
