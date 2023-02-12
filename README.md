@@ -29,6 +29,12 @@ To run the pre-commit hooks manually.
 
 ## Credits
 
+### Development
+- [jbachurski](https://github.com/jbachurski)
+- [Rokcas](https://github.com/Rokcas)
+- [spdskatr](https://github.com/spdskatr)
+- [zeyonaut](https://github.com/zeyonaut)
+
 ### opengameart.org
 - Clint Bellanger (http://clintbellanger.net, http://heroinedusk.com)
 - One Man Army (@OneManArmyDev)
