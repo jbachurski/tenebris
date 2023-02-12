@@ -4,12 +4,12 @@ use bevy::{
 	math::Vec3Swizzles,
 	prelude::*,
 	render::{extract_resource::ExtractResource, view::RenderLayers},
-	utils::HashSet,
+	utils::*,
 };
 use bevy_inspector_egui::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{parry::query::details::CompositeShapeAgainstAnyDistanceVisitor, prelude::*};
 
-use crate::{assets::Atlases, tilemap::*, tilesim::Simulator, utils::*, Despawn};
+use crate::{assets::Atlases, structures::*, tilemap::*, tilesim::Simulator, utils::*, Despawn};
 
 pub const TILE_SIZE: f32 = 32.;
 pub const FOG_RADIUS: u32 = 17;
@@ -29,7 +29,7 @@ pub struct TileManager {
 	pub is_wall: [[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
 	pub spawned_tiles: HashSet<UVec2>,
 	pub campfires: HashSet<UVec2>,
-	pub structures: HashSet<UVec2>,
+	pub structures: HashMap<UVec2, StructureType>,
 	pub reality_bubble: HashSet<UVec2>,
 }
 
@@ -53,7 +53,7 @@ fn _tile_position_to_position(tile_position: &UVec2) -> Vec2 {
 }
 pub fn spawn_tile(
 	commands: &mut Commands,
-	_asset_server: &AssetServer,
+	asset_server: &AssetServer,
 	atlases: &Atlases,
 	simulator: &Simulator,
 	tile_position: UVec2,
@@ -87,9 +87,24 @@ pub fn spawn_tile(
 	}
 
 	// Check if other structure tile
-	if simulator.grid.structures.contains(&tile_position) {
-		spawn_campfire_sprite(commands, atlases, tile_position);
-	}
+	simulator.grid.structures.get(&tile_position).map(|structure_type| {
+		spawn_structure_sprite(commands, asset_server, structure_type, tile_position);
+	});
+}
+
+pub fn spawn_structure_sprite(
+	commands: &mut Commands,
+	asset_server: &AssetServer,
+	structure_type: &StructureType,
+	tile_position: UVec2,
+) {
+	commands
+		.spawn(SpriteBundle {
+			transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 0.),
+			texture: get_structure_texture(structure_type, asset_server),
+			..default()
+		})
+		.insert(Structure);
 }
 
 pub fn spawn_campfire_sprite(commands: &mut Commands, atlases: &Atlases, tile_position: UVec2) {

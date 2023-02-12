@@ -38,6 +38,8 @@ use tilesim::*;
 mod utils;
 use utils::*;
 
+mod structures;
+
 #[derive(Component)]
 pub struct Despawn;
 
@@ -175,7 +177,7 @@ pub fn simulator_step(
 	let player_trans = player.single().translation.truncate();
 	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
-	if (keyboard_input.just_pressed(KeyCode::E)) {
+	if keyboard_input.just_pressed(KeyCode::E) {
 		if simulator.grid.campfires.contains(&player_pos) {
 			simulator.remove_campfire(player_pos);
 			for (e, t) in structures.iter() {
