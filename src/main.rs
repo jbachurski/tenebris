@@ -12,8 +12,8 @@ use camera::*;
 mod player;
 use player::*;
 
-mod enemy;
-use enemy::*;
+mod enemies;
+use enemies::{enemy::*, ranger::*, wraith::*};
 
 mod assets;
 use assets::*;
