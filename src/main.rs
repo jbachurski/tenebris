@@ -92,6 +92,7 @@ fn main() {
 			10,
 			20,
 			5,
+			15,
 		))
 		.insert_resource(SimulatorTimer(Timer::from_seconds(0.1, TimerMode::Repeating)))
 		.insert_resource(Atlases::default())

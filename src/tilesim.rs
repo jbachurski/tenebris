@@ -18,6 +18,7 @@ pub struct Simulator {
 	n_structures: u32,
 	structure_dist: u32,
 	structure_radius: u32,
+	boss_room_radius: u32,
 	pub grid: TileManager,
 }
 
@@ -33,6 +34,7 @@ impl Simulator {
 		n_structures: u32,
 		structure_dist: u32,
 		structure_radius: u32,
+		boss_room_radius: u32,
 	) -> Simulator {
 		Self {
 			width: width,
@@ -45,6 +47,7 @@ impl Simulator {
 			n_structures: n_structures,
 			structure_dist: structure_dist,
 			structure_radius: structure_radius,
+			boss_room_radius: boss_room_radius,
 			grid: TileManager::default(),
 		}
 	}
@@ -72,6 +75,7 @@ impl Simulator {
 		for pos in poisson_disk_sample(&structure_choices, self.structure_dist as f32, self.n_structures).iter() {
 			self.grid.structures.insert(*pos, StructureType::Unspawned);
 		}
+		self.grid.structures.insert(self.world_center(), StructureType::SpawnTutorial);
 
 		for i in 0..self.width {
 			for j in 0..self.width {
@@ -131,9 +135,10 @@ impl Simulator {
 			self.grid.reality_bubble.insert(loc);
 			// If structure, assign it a random value
 			self.grid.structures.get_mut(&loc).map(|v| {
-				*v = match thread_rng().gen_range(0..=1) {
+				*v = match thread_rng().gen_range(0..=2) {
 					0 => StructureType::Remember,
 					1 => StructureType::BewareSpider,
+					2 => StructureType::Altar,
 					_ => panic!(),
 				};
 			});
