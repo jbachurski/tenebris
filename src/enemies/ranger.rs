@@ -57,7 +57,7 @@ pub fn spawn_ranger(
 		Bounded {
 			size: Vec2::splat(2. * 20.),
 		},
-		Mob { health: 3 },
+		Mob { health: 20 },
 		Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
@@ -68,6 +68,11 @@ pub fn spawn_ranger(
 		Collider::cuboid(12.0, 12.0),
 		Enemy,
 		SpriteFacingMovement,
+		PlayerDanger {
+			damage: 1,
+			hit_despawn: false,
+			til_despawn: f32::INFINITY,
+		},
 	));
 }
 

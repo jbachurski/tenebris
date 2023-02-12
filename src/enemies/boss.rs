@@ -35,7 +35,7 @@ pub fn spawn_boss(mut commands: Commands, asset_server: Res<AssetServer>) {
 		.insert(EnemyBoss {
 			state: BossState::Waiting(BOSS_WAIT_TO_TELEPORT),
 		})
-		.insert(Mob { health: 3 })
+		.insert(Mob { health: 300 })
 		.insert(Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
@@ -48,7 +48,12 @@ pub fn spawn_boss(mut commands: Commands, asset_server: Res<AssetServer>) {
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
 		.insert(Collider::cuboid(24.0, 24.0))
-		.insert(Dominance::group(10));
+		.insert(Dominance::group(10))
+		.insert(PlayerDanger {
+			damage: 1,
+			hit_despawn: false,
+			til_despawn: f32::INFINITY,
+		});
 }
 
 pub fn boss_shoot(commands: &mut Commands, asset_server: &Res<AssetServer>, source: Vec2, angle: f32) {

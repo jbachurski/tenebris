@@ -22,6 +22,7 @@ impl Player {
 	pub fn take_damage(self: &mut Self, damage: i32) {
 		if self.invincibility_seconds <= 0.0 {
 			self.health -= damage;
+			self.invincibility_seconds = 0.66;
 		}
 		println!("player health {}", self.health);
 	}

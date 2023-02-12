@@ -27,7 +27,7 @@ pub struct PlayerDanger {
 
 pub fn projectile_hit_mobs(
 	mut commands: Commands,
-	mut projectiles: Query<(Entity, &Transform, &Bounded, &Projectile)>,
+	mut projectiles: Query<(Entity, &Transform, &Bounded, &Projectile), Without<Despawn>>,
 	mut mobs: Query<(&Transform, &Bounded, &mut Mob)>,
 ) {
 	for (proj_entity, proj_transform, proj_bound, proj) in projectiles.iter_mut() {

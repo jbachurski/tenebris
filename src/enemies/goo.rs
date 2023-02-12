@@ -24,7 +24,7 @@ pub fn spawn_goo(commands: &mut Commands, asset_server: &mut Res<AssetServer>, p
 		EnemyGoo {
 			state: EnemyGooState::Waiting(0.0),
 		},
-		Mob { health: 3 },
+		Mob { health: 15 },
 		Velocity {
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
@@ -38,6 +38,11 @@ pub fn spawn_goo(commands: &mut Commands, asset_server: &mut Res<AssetServer>, p
 		Collider::cuboid(12.0, 12.0),
 		Enemy,
 		SpriteFacingMovement,
+		PlayerDanger {
+			damage: 2,
+			hit_despawn: false,
+			til_despawn: f32::INFINITY,
+		},
 	));
 }
 

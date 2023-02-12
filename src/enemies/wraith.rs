@@ -24,7 +24,7 @@ pub fn spawn_wraith(commands: &mut Commands, asset_server: &mut Res<AssetServer>
 			angle: 0.0,
 			angle_vel: 0.0,
 		},
-		Mob { health: 3 },
+		Mob { health: 30 },
 		Bounded {
 			size: Vec2::splat(2. * 20.),
 		},
@@ -36,6 +36,11 @@ pub fn spawn_wraith(commands: &mut Commands, asset_server: &mut Res<AssetServer>
 		},
 		Enemy,
 		SpriteFacingMovement,
+		PlayerDanger {
+			damage: 3,
+			hit_despawn: false,
+			til_despawn: f32::INFINITY,
+		},
 	));
 }
 
