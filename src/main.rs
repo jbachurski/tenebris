@@ -226,7 +226,7 @@ pub fn despawn_tiles(
 				|| tile_position.y > camera_tile_position.y.saturating_add(FOG_RADIUS)
 			{
 				simulator.grid.spawned_tiles.remove(&tile_position);
-				commands.entity(entity).despawn_recursive();
+				commands.entity(entity).despawn();
 			}
 		}
 	}
