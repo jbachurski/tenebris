@@ -1,4 +1,5 @@
 use bevy::{prelude::*, utils::*};
+use bevy_rapier2d::na::clamp;
 use rand::*;
 
 use crate::{structures::*, tiles::*, utils::*};
@@ -182,6 +183,23 @@ impl Simulator {
 		}
 		// For cells within inner_rad, return original cell
 		return self.grid.is_wall[i as usize][j as usize];
+	}
+
+	pub fn recalc_lightmap(&mut self, player_pos: UVec2) {
+		for i in 0..self.width {
+			for j in 0..self.width {
+				let loc = UVec2::new(i, j);
+				let dist_to_player = loc.as_vec2().distance(player_pos.as_vec2());
+				let dist_to_lights = self
+					.grid
+					.campfires
+					.iter()
+					.map(|uv| uv.as_vec2().distance(loc.as_vec2()))
+					.reduce(|x, y| x.min(y))
+					.unwrap_or(f32::INFINITY);
+				self.grid.lightmap[i as usize][j as usize] = clamp(1. - dist_to_player.min(dist_to_lights) / 8., 0., 1.);
+			}
+		}
 	}
 
 	fn cannot_forget(&self, loc: UVec2) -> bool {

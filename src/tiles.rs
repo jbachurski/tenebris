@@ -9,7 +9,7 @@ use bevy::{
 use bevy_inspector_egui::prelude::*;
 use bevy_rapier2d::{parry::query::details::CompositeShapeAgainstAnyDistanceVisitor, prelude::*};
 
-use crate::{assets::Atlases, structures::*, tilemap::*, tilesim::Simulator, utils::*, Despawn};
+use crate::{assets::Atlases, player::Player, structures::*, tilemap::*, tilesim::Simulator, utils::*, Despawn};
 
 pub const TILE_SIZE: f32 = 32.;
 pub const FOG_RADIUS: u32 = 17;
@@ -23,10 +23,14 @@ pub struct BackTile;
 #[derive(Component)]
 pub struct Structure;
 
+#[derive(Component)]
+pub struct Overlay;
+
 #[derive(Reflect, Clone, Debug, Resource, InspectorOptions, ExtractResource)]
 #[reflect(Resource, InspectorOptions)]
 pub struct TileManager {
 	pub is_wall: [[bool; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+	pub lightmap: [[f32; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
 	pub spawned_tiles: HashSet<UVec2>,
 	pub campfires: HashSet<UVec2>,
 	pub structures: HashMap<UVec2, StructureType>,
@@ -37,6 +41,7 @@ impl Default for TileManager {
 	fn default() -> Self {
 		return Self {
 			is_wall: [[false; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
+			lightmap: [[0.; MAP_RADIUS_USIZE * 2]; MAP_RADIUS_USIZE * 2],
 			spawned_tiles: default(),
 			campfires: default(),
 			structures: default(),
@@ -148,11 +153,17 @@ pub fn despawn_tiles(
 	tiles: Query<(Entity, &Transform), With<Tile>>,
 	back_tiles: Query<(Entity, &Transform), With<BackTile>>,
 	structures: Query<(Entity, &Transform), With<Structure>>,
+	overlays: Query<(Entity, &Transform), With<Overlay>>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut simulator: ResMut<Simulator>,
 ) {
 	for camera in cameras.iter() {
-		for (entity, transform) in tiles.iter().chain(back_tiles.iter()).chain(structures.iter()) {
+		for (entity, transform) in tiles
+			.iter()
+			.chain(back_tiles.iter())
+			.chain(structures.iter())
+			.chain(overlays.iter())
+		{
 			let position = transform.translation.xy();
 			let camera_tile_position = position_to_tile_position(&camera.translation.xy());
 			let tile_position = position_to_tile_position(&position);
@@ -163,6 +174,62 @@ pub fn despawn_tiles(
 			{
 				simulator.grid.spawned_tiles.remove(&tile_position);
 				commands.entity(entity).insert(Despawn);
+			}
+		}
+	}
+}
+
+pub fn update_lightmap(
+	mut commands: Commands,
+	mut overlays: Query<(Entity, &Transform), With<Overlay>>,
+	mut simulator: ResMut<Simulator>,
+	mut player: Query<&Transform, With<Player>>,
+	cameras: Query<&Transform, With<Camera>>,
+) {
+	let player_pos = player.single().translation.truncate();
+	simulator.recalc_lightmap(position_to_tile_position(&player_pos));
+	for (entity, transform) in overlays.iter_mut() {
+		let tile_position = position_to_tile_position(&transform.translation.xy());
+		let (i, j) = tile_position.into();
+		commands.entity(entity).despawn();
+		/*
+		commands
+			.spawn(SpriteBundle {
+				transform: Transform::from_xyz(tile_position.x as f32 * TILE_SIZE, tile_position.y as f32 * TILE_SIZE, 10.),
+				sprite: Sprite {
+					color: Color::rgba(0., 0., 0., 1.-simulator.grid.lightmap[i as usize][j as usize]),
+					custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
+					..default()
+				},
+				..default()
+			}).insert(Overlay);
+			*/
+	}
+
+	for camera in cameras.iter() {
+		let camera_tile_position = position_to_tile_position(&camera.translation.xy());
+		for x in camera_tile_position.x.saturating_sub(FOG_RADIUS)
+			..=min(MAP_RADIUS * 2 - 1, camera_tile_position.x.saturating_add(FOG_RADIUS))
+		{
+			for y in camera_tile_position.y.saturating_sub(FOG_RADIUS)
+				..=min(MAP_RADIUS * 2 - 1, camera_tile_position.y.saturating_add(FOG_RADIUS))
+			{
+				let tile_position = UVec2::new(x, y);
+				commands
+					.spawn(SpriteBundle {
+						transform: Transform::from_xyz(
+							tile_position.x as f32 * TILE_SIZE,
+							tile_position.y as f32 * TILE_SIZE,
+							10.,
+						),
+						sprite: Sprite {
+							color: Color::rgba(0., 0., 0., 1. - simulator.grid.lightmap[x as usize][y as usize]),
+							custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
+							..default()
+						},
+						..default()
+					})
+					.insert(Overlay);
 			}
 		}
 	}

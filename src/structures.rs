@@ -37,14 +37,16 @@ pub fn decide_structure_type(boss_room_loc: UVec2, loc: UVec2) -> StructureType 
 	if loc == boss_room_loc {
 		return StructureType::BossAltar;
 	}
-	match thread_rng().gen_range(0..=6) {
+	if (thread_rng().gen::<f32>()) < 0.3 {
+		return StructureType::Altar;
+	}
+	match thread_rng().gen_range(0..=5) {
 		0 => StructureType::Remember,
 		1 => StructureType::BewareSpider,
-		2 => StructureType::Altar,
+		2 => StructureType::FearTheSpider,
 		3 => StructureType::Forget,
 		4 => StructureType::RememberRemember,
 		5 => StructureType::TorchHint,
-		6 => StructureType::FearTheSpider,
 		_ => panic!(),
 	}
 }
