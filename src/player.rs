@@ -91,5 +91,6 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		Collider::cuboid(12.0, 12.0),
 		Ccd::enabled(),
 		LockedAxes::ROTATION_LOCKED,
+		SpriteFacingMovement,
 	));
 }

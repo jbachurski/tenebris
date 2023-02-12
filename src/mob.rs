@@ -16,6 +16,9 @@ pub struct Mob {
 	pub health: u32,
 }
 
+#[derive(Component)]
+pub struct SpriteFacingMovement;
+
 //#[derive(Component)]
 //pub struct Velocity(pub Vec2);
 
@@ -23,6 +26,18 @@ pub struct Mob {
 pub struct Acceleration {
 	pub max_velocity: f32,
 	pub rate: f32,
+}
+
+pub fn mob_face_movement(mut mob_query: Query<(&mut TextureAtlasSprite, &Velocity), With<SpriteFacingMovement>>) {
+	for (mut sprite, velocity) in mob_query.iter_mut() {
+		// Want to avoid flipping when x = 0
+		if velocity.linvel.x < 0.0 {
+			sprite.flip_x = true;
+		}
+		if velocity.linvel.x > 0.0 {
+			sprite.flip_x = false;
+		}
+	}
 }
 
 /*
