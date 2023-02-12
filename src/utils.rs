@@ -20,7 +20,7 @@ pub fn poisson_disk_sample(elems: &Vec<UVec2>, dist: f32, k: u32) -> Vec<UVec2> 
 			tries -= 1;
 		}
 		if tries <= 0 {
-			panic!("Tried to Poisson disk sample but failed after 1000 tries. Did you set the distance between points to be too large?");
+			panic!("Tried to Poisson disk sample ({k}) from ({n}) but failed after 1000 tries. Did you set the distance between points ({dist}) to be too large?");
 		}
 		res.push(a);
 	}

@@ -100,6 +100,7 @@ pub fn spawn_tiles(
 pub fn despawn_tiles(
 	mut commands: Commands,
 	tiles: Query<(Entity, &Transform), With<Tile>>,
+	mut back_tiles: Query<Entity, With<BackTile>>,
 	cameras: Query<&Transform, With<Camera>>,
 	mut simulator: ResMut<Simulator>,
 ) {
@@ -117,6 +118,9 @@ pub fn despawn_tiles(
 				commands.entity(entity).despawn();
 			}
 		}
+	}
+	for entity in back_tiles.iter() {
+		commands.entity(entity).despawn();
 	}
 }
 

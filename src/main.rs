@@ -1,5 +1,5 @@
 use bevy::{
-	diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+	diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
 	prelude::*,
 	render::render_resource::*,
 };
@@ -78,6 +78,7 @@ fn main() {
 		.add_plugin(DebugLinesPlugin::default())
 		.add_plugin(LogDiagnosticsPlugin::default())
 		.add_plugin(FrameTimeDiagnosticsPlugin::default())
+		.add_plugin(EntityCountDiagnosticsPlugin::default())
 		.insert_resource(Simulator::new(
 			MAP_RADIUS * 2,
 			(3, 6),
@@ -86,7 +87,7 @@ fn main() {
 			15,
 			(20, 30),
 			2,
-			0,
+			10,
 			20,
 			5,
 		))

@@ -59,8 +59,8 @@ impl Simulator {
 
 		// Spawn structures
 
-		let structure_choices = (1usize..10)
-			.flat_map(|i| (1usize..10).map(move |j| (i, j)))
+		let structure_choices = (1usize..self.width as usize)
+			.flat_map(|i| (1usize..self.width as usize).map(move |j| (i, j)))
 			.filter(|(i, j)| self.grid.is_wall[*i][*j])
 			.map(|(i, j)| UVec2::new(i as u32, j as u32))
 			.collect();
