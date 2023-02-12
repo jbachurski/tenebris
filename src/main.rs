@@ -82,7 +82,7 @@ fn main() {
 		.insert_resource(Simulator::new(
 			MAP_RADIUS * 2,
 			(3, 6),
-			(10, MAP_RADIUS - 2),
+			(10, MAP_RADIUS - 6),
 			(10, 13),
 			15,
 			(20, 30),
@@ -178,6 +178,14 @@ fn setup(
 		None,
 		None,
 	));
+	atlases.campfire_atlas = texture_atlases.add(TextureAtlas::from_grid(
+		asset_server.load("campfire.png"),
+		Vec2::new(16., 16.),
+		4,
+		1,
+		None,
+		None,
+	));
 	simulator.post_init();
 }
 
@@ -186,15 +194,28 @@ pub fn simulator_step(
 	mut simulator: ResMut<Simulator>,
 	player: Query<&Transform, With<Player>>,
 	minimap: Query<Entity, With<Minimap>>,
+	structures: Query<(Entity, &Transform), With<Structure>>,
 	mut timer: ResMut<SimulatorTimer>,
 	time: Res<Time>,
 	keyboard_input: Res<Input<KeyCode>>,
+	atlases: Res<Atlases>,
 ) {
 	let player_trans = player.single().translation.truncate();
 	let player_pos = position_to_tile_position(&player_trans);
 	timer.0.tick(time.delta());
 	if (keyboard_input.just_pressed(KeyCode::E)) {
-		simulator.toggle_campfire(player_pos);
+		if simulator.grid.campfires.contains(&player_pos) {
+			simulator.remove_campfire(player_pos);
+			for (e, t) in structures.iter() {
+				let structure_trans = t.translation.truncate();
+				if position_to_tile_position(&structure_trans) == player_pos {
+					commands.entity(e).despawn();
+				}
+			}
+		} else {
+			simulator.place_campfire(player_pos);
+			spawn_campfire_sprite(&mut commands, &atlases, player_pos);
+		}
 	}
 	if timer.0.just_finished() {
 		simulator.step(player_pos);
