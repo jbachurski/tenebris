@@ -28,6 +28,7 @@ pub struct EnemyGoo {
 }
 
 pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
+	// Skeleton
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
@@ -48,6 +49,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
 		.insert(Collider::cuboid(12.0, 12.0));
+
+	// Skeleton
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(30., 6).into()).into(),
@@ -68,6 +71,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 		.insert(LockedAxes::ROTATION_LOCKED)
 		.insert(CollidesWithWalls)
 		.insert(Collider::cuboid(12.0, 12.0));
+
+	// Wraith
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(40., 3).into()).into(),
@@ -89,6 +94,8 @@ pub fn spawn_enemies(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, m
 			linvel: Vec2::ZERO,
 			angvel: 0.0,
 		});
+
+	// Slime
 	commands
 		.spawn(MaterialMesh2dBundle {
 			mesh: meshes.add(shape::RegularPolygon::new(25., 16).into()).into(),

@@ -12,27 +12,74 @@ pub struct AnimationTimer(Timer);
 #[derive(Component, Deref, DerefMut)]
 pub struct ShootingTimer(Timer);
 
-pub fn update_velocity(keyboard_input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity, &Acceleration), With<Player>>) {
+#[derive(Default, Resource)]
+pub struct MovementPrecedence {
+	pub up_has_precedence: Option<bool>,
+	pub right_has_precedence: Option<bool>,
+}
+
+pub fn update_velocity(
+	mut movement_precedence: Local<MovementPrecedence>,
+	keyboard_input: Res<Input<KeyCode>>,
+	mut query: Query<(&mut Velocity, &Acceleration), With<Player>>,
+) {
 	let (mut velocity, acceleration) = query.single_mut();
 	let velocity_vec = &mut velocity.linvel;
 
 	let mut acceleration_vec = Vec2::ZERO;
 	let mut passive_deceleration = Vec2::ZERO;
 
-	if keyboard_input.pressed(KeyCode::A) {
+	if keyboard_input.just_pressed(KeyCode::A) {
+		movement_precedence.right_has_precedence = Some(false);
+	} else if keyboard_input.just_released(KeyCode::A) {
+		movement_precedence.right_has_precedence = if keyboard_input.pressed(KeyCode::D) {
+			Some(true)
+		} else {
+			None
+		};
+	}
+	if keyboard_input.just_pressed(KeyCode::D) {
+		movement_precedence.right_has_precedence = Some(true);
+	} else if keyboard_input.just_released(KeyCode::D) {
+		movement_precedence.right_has_precedence = if keyboard_input.pressed(KeyCode::A) {
+			Some(false)
+		} else {
+			None
+		};
+	}
+	if keyboard_input.just_pressed(KeyCode::S) {
+		movement_precedence.up_has_precedence = Some(false);
+	} else if keyboard_input.just_released(KeyCode::S) {
+		movement_precedence.up_has_precedence = if keyboard_input.pressed(KeyCode::W) {
+			Some(true)
+		} else {
+			None
+		};
+	}
+	if keyboard_input.just_pressed(KeyCode::W) {
+		movement_precedence.up_has_precedence = Some(true);
+	} else if keyboard_input.just_released(KeyCode::W) {
+		movement_precedence.up_has_precedence = if keyboard_input.pressed(KeyCode::S) {
+			Some(false)
+		} else {
+			None
+		};
+	}
+
+	if movement_precedence.right_has_precedence == Some(false) {
 		acceleration_vec += Vec2::NEG_X;
 		velocity_vec.x = f32::min(0.0, velocity_vec.x);
-	} else if keyboard_input.pressed(KeyCode::D) {
+	} else if movement_precedence.right_has_precedence == Some(true) {
 		acceleration_vec += Vec2::X;
 		velocity_vec.x = f32::max(0.0, velocity_vec.x);
 	} else {
 		passive_deceleration.x = -velocity_vec.x;
 	}
 
-	if keyboard_input.pressed(KeyCode::W) {
+	if movement_precedence.up_has_precedence == Some(true) {
 		acceleration_vec += Vec2::Y;
 		velocity_vec.y = f32::max(0.0, velocity_vec.y);
-	} else if keyboard_input.pressed(KeyCode::S) {
+	} else if movement_precedence.up_has_precedence == Some(false) {
 		acceleration_vec += Vec2::NEG_Y;
 		velocity_vec.y = f32::min(0.0, velocity_vec.y);
 	} else {
