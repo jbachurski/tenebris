@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{mob::*, shooting::*};
+use crate::{mob::*, shooting::*, utils::MAP_RADIUS};
 
 pub enum PlayerWeaponSelect {
 	Firebolt,
@@ -179,7 +179,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, mut 
 		},
 		SpriteSheetBundle {
 			texture_atlas: texture_atlas_handle,
-			transform: Transform::from_translation(Vec3::new(3200.0, 3200.0, 2.0)),
+			transform: Transform::from_translation(Vec3::new(32. * MAP_RADIUS as f32, 32. * MAP_RADIUS as f32, 2.)),
 			..default()
 		},
 		AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
